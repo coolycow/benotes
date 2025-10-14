@@ -47,7 +47,7 @@
                         required />
                 </div>-->
 
-                <div class="mb-8">
+                <div class="mb-8" v-if="isCodeSent">
                     <label class="label" for="code">Confirmation Code</label>
                     <input
                         v-model="code"
@@ -64,13 +64,13 @@
                     </p>
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <button class="button" type="submit">Login</button>
-                    <router-link
+                <div class="flex items-center justify-between" v-if="isCodeSent">
+                    <button class="button w-full" type="submit">Login</button>
+                    <!--<router-link
                         to="/forgot"
                         class="inline-block align-baseline font-semibold text-sm text-orange-600 hover:text-orange-700">
                         Forgot Password?
-                    </router-link>
+                    </router-link>-->
                 </div>
             </form>
         </div>
