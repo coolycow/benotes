@@ -3,6 +3,10 @@
 namespace App\Services;
 
 use App\Jobs\ProcessMissingThumbnail;
+use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Contracts\PostTagRepositoryInterface;
+use DOMDocument;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -10,36 +14,58 @@ use Intervention\Image\Exception\ImageException;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use HeadlessChromium\BrowserFactory;
-
 use App\Models\Post;
 use App\Models\Collection;
 use App\Models\User;
-use App\Models\PostTag;
 use ColorThief\ColorThief;
 
-class PostService
+readonly class PostService
 {
+    public function __construct(
+        protected PostRepositoryInterface $repository,
+        protected PostTagRepositoryInterface $postTagRepository,
+        protected PostTagService $postTagService,
+    )
+    {
+        //
+    }
 
+    /**
+     * @param int $user_id
+     * @param int|null $collection_id
+     * @param bool $is_uncategorized
+     * @param int|null $tag_id
+     * @param bool $withTags
+     * @param string|null $filter
+     * @param int $auth_type
+     * @param bool $is_archived
+     * @param Post|null $after_post
+     * @param int|null $offset
+     * @param int|null $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function all(
-        int $collection_id = -1,
+        int $user_id,
+        ?int $collection_id = null,
         bool $is_uncategorized = false,
-        int $tag_id = -1,
+        ?int $tag_id = null,
         bool $withTags = false,
-        string $filter = '',
+        ?string $filter = null,
         int $auth_type = User::UNAUTHORIZED_USER,
         bool $is_archived = false,
         Post $after_post = null,
-        int $offset = -1,
-        int $limit = 50
-    ): \Illuminate\Database\Eloquent\Collection {
-        $posts = new Post;
+        ?int $offset = null,
+        ?int $limit = 50
+    ): \Illuminate\Database\Eloquent\Collection
+    {
+        $posts = Post::query();
 
         if ($withTags) {
             $posts = $posts->with('tags:id,name');
         }
 
-        if ($tag_id > 0) {
-            $post_ids = PostTag::where('tag_id', $tag_id)->select('post_id')->get();
+        if ($tag_id) {
+            $post_ids = $this->postTagRepository->getByTagId($tag_id)->pluck('post_id')->toArray();
             $posts = $posts->whereIn('id', $post_ids);
         }
 
@@ -59,16 +85,16 @@ class PostService
                 );
                 $posts = $posts->where([
                     ['collection_id', '=', $collection_id],
-                    ['user_id', '=', Auth::user()->id]
+                    ['user_id', '=', $user_id]
                 ]);
             } else {
                 $posts = $posts->where('user_id', Auth::user()->id);
             }
-        } else if ($auth_type === User::SHARE_USER) {
+        } elseif ($auth_type === User::SHARE_USER) {
             $share = Auth::guard('share')->user();
             $posts = $posts->where([
                 'collection_id' => $share->collection_id,
-                'user_id'       => $share->created_by
+                'user_id' => $share->created_by
             ]);
         }
 
@@ -83,11 +109,11 @@ class PostService
 
         if ($after_post !== null) {
             $posts = $posts->where('order', '<', $after_post->order);
-        } else if ($offset > 0) {
+        } elseif ($offset) {
             $posts = $posts->offset($offset);
         }
 
-        if ($limit > 0) {
+        if ($limit) {
             $posts = $posts->limit($limit);
         }
 
@@ -100,64 +126,96 @@ class PostService
         return $posts->orderBy('order', 'desc')->get();
     }
 
-    public function store($title, $content, $collection_id, $description, $tags, $user_id): Post
+    /**
+     * @param int $user_id
+     * @param string $content
+     * @param string|null $title
+     * @param int|null $collection_id
+     * @param string|null $description
+     * @param array|null $tags
+     * @return Post
+     */
+    public function store(
+        int $user_id,
+        string $content,
+        ?string $title = null,
+        ?int $collection_id = null,
+        ?string $description = null,
+        ?array $tags = null,
+        ): Post
     {
         $content = $this->sanitize($content);
-        $info = $this->computePostData($title, $content, $description);
+        $info = $this->computePostData($content, $title, $description);
 
         $attributes = array_merge([
-            'title'         => $title,
-            'content'       => $content,
+            'title' => $title,
+            'content' => $content,
             'collection_id' => $collection_id,
-            'description'   => $description,
-            'user_id'       => $user_id
+            'description' => $description,
+            'user_id' => $user_id,
+            'order' => $this->repository->getNextOrder($user_id, $collection_id)
         ], $info);
 
-        $attributes['order'] = Post::where('collection_id', Collection::getCollectionId($collection_id))
-            ->max('order') + 1;
-
-        $post = Post::create($attributes);
+        $post = Post::query()->create($attributes);
 
         if ($info['type'] === Post::POST_TYPE_LINK) {
             $this->saveImage($info['image_path'], $post);
         }
-        if (isset($tags)) {
-            $this->saveTags($post->id, $tags);
+
+        if ($tags) {
+            $this->saveTags($post->getKey(), $tags);
         }
 
-        $post->tags = $post->tags()->get();
-        return $post;
+        return $post->refresh();
     }
 
+    /**
+     * @param Post $post
+     * @return void
+     */
     public function delete(Post $post): void
     {
-        Post::where('collection_id', $post->collection_id)
+        Post::query()->where('collection_id', $post->collection_id)
             ->where('order', '>', $post->order)
             ->decrement('order');
 
         $post->delete();
     }
 
+    /**
+     * @param Post $post
+     * @return Post
+     */
     public function restore(Post $post): Post
     {
-        $maxOrder = Post::where('collection_id', $post->collection_id)->max('order');
+        $maxOrder = Post::query()->where('collection_id', $post->collection_id)->max('order');
+
         if ($post->order <= $maxOrder) {
-            Post::where('collection_id', $post->collection_id)
+            Post::query()->where('collection_id', $post->collection_id)
                 ->where('order', '>=', $post->order)
                 ->increment('order');
         } else {
             $post->order = $maxOrder + 1;
         }
+
         $post->restore();
+
         return $post;
     }
 
-    public function computePostData(string $title = null, string $content, string $description = null)
+    /**
+     * @param string $content
+     * @param string|null $title
+     * @param string|null $description
+     * @return array
+     */
+    public function computePostData(string $content, string $title = null, string $description = null): array
     {
         // more explicit: https?(:\/\/)((\w|-)+\.)+(\w+)(\/\w+)*(\?)?(\w=\w+)?(&\w=\w+)*
         preg_match_all('/(https?:\/\/)((\S+?\.|localhost:)\S+?)(?=\s|<|"|$)/', $content, $matches);
         $matches = $matches[0];
         $info = null;
+
         if (count($matches) > 0) {
             $info = $this->getInfo($matches[0]);
         }
@@ -170,11 +228,12 @@ class PostService
         }
 
         $stripped_content = strip_tags($content);
+
         if (empty($matches)) {
             $info['type'] = Post::POST_TYPE_TEXT;
-        } else if (strlen($stripped_content) > strlen($matches[0])) { // contains more than just a link
+        } elseif (strlen($stripped_content) > strlen($matches[0])) { // contains more than just a link
             $info['type'] = Post::POST_TYPE_TEXT;
-        } else if ($stripped_content != $matches[0]) {
+        } elseif ($stripped_content != $matches[0]) {
             $info['type'] = Post::POST_TYPE_TEXT;
         } else {
             $info['type'] = Post::POST_TYPE_LINK;
@@ -183,19 +242,29 @@ class PostService
         return $info;
     }
 
-    public function sanitize(string $str)
+    /**
+     * @param string $str
+     * @return string
+     */
+    public function sanitize(string $str): string
     {
         return strip_tags($str, '<a><strong><b><em><i><s><p><h1><h2><h3><h4><h5>' .
             '<pre><br><hr><blockquote><ul><li><ol><code><img><unfurling-link>');
     }
 
-    public function getInfo(string $url, $act_as_bot = false)
+    /**
+     * @param string $url
+     * @param bool $act_as_bot
+     * @return array
+     */
+    public function getInfo(string $url, bool $act_as_bot = false): array
     {
         $base_url = parse_url($url);
         $base_url = $base_url['scheme'] . '://' . $base_url['host'];
 
-        $useragent = $act_as_bot ? 'Googlebot/2.1 (+http://www.google.com/bot.html)' :
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
+        $useragent = $act_as_bot
+            ? 'Googlebot/2.1 (+http://www.google.com/bot.html)'
+            : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -224,7 +293,7 @@ class PostService
             ];
         }
 
-        $document = new \DOMDocument();
+        $document = new DOMDocument();
         $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
         @$document->loadHTML($html);
         $titles = $document->getElementsByTagName('title');
@@ -270,42 +339,56 @@ class PostService
         ];
     }
 
-    public function getDominantColor(string $base_url)
+    /**
+     * @param string $base_url
+     * @return string|null
+     */
+    public function getDominantColor(string $base_url): ?string
     {
         if (!extension_loaded('gd') & !extension_loaded('imagick') & !extension_loaded('gmagick')) {
             return null;
         }
 
         $host = parse_url($base_url)['host'];
+
         try {
             $rgb = ColorThief::getColor('https://www.google.com/s2/favicons?domain=' . $host);
         } catch (\RuntimeException $e) {
             return '#FFF';
         }
-        $hex = sprintf("#%02x%02x%02x", $rgb[0], $rgb[1], $rgb[2]);
-        return $hex;
+
+        return sprintf("#%02x%02x%02x", $rgb[0], $rgb[1], $rgb[2]);
     }
 
-    public function saveTags(int $post_id, array $tag_ids)
+    /**
+     * @param int $post_id
+     * @param array $tag_ids
+     * @return void
+     */
+    public function saveTags(int $post_id, array $tag_ids): void
     {
-        $old_tags_obj = PostTag::select('tag_id')->where('post_id', $post_id)->get();
+        $old_tags_obj = $this->postTagRepository->getByPostId($post_id);
         $old_tags = [];
+
         foreach ($old_tags_obj as $old_tag) {
             $old_tags[] = $old_tag->tag_id;
         }
 
         foreach ($tag_ids as $tag_id) {
             if (!in_array($tag_id, $old_tags)) {
-                PostTag::create([
-                    'post_id' => $post_id,
-                    'tag_id'  => $tag_id
-                ]);
+                $this->postTagService->create($post_id, $tag_id);
             }
         }
-        PostTag::whereNotIn('tag_id', $tag_ids)->where('post_id', $post_id)->delete();
+
+        $this->postTagService->deleteByPostIdAndTagIds($post_id, $tag_ids);
     }
 
-    public function saveImage($image_path, Post $post)
+    /**
+     * @param $image_path
+     * @param Post $post
+     * @return void
+     */
+    public function saveImage($image_path, Post $post): void
     {
 
         if (empty($image_path)) {
@@ -313,9 +396,8 @@ class PostService
             return;
         }
 
-        if (config('benotes.use_filesystem') == false) {
-            $post->image_path = $image_path;
-            $post->save();
+        if (!config('benotes.use_filesystem')) {
+            $post->update(['image_path' => $image_path]);
             return;
         }
 
@@ -324,6 +406,7 @@ class PostService
         } catch (ImageException $e) {
             Log::notice('Image could not be created');
         }
+
         if (!isset($image)) {
             return;
         }
@@ -332,11 +415,18 @@ class PostService
         $image = $image->fit(400, 210)->limitColors(255);
         Storage::put('thumbnails/' . $filename, $image->stream());
 
-        $post->image_path = $filename;
-        $post->save();
+        $post->update(['image_path' => $filename]);
     }
 
-    public function crawlWithChrome(string $filename, string $path, string $url, int $postId)
+    /**
+     * @param string $filename
+     * @param string $path
+     * @param string $url
+     * @param int $postId
+     * @return void
+     * @throws Exception
+     */
+    public function crawlWithChrome(string $filename, string $path, string $url, int $postId): void
     {
         $imagePath = $path;
         $width = 400;
@@ -364,16 +454,17 @@ class PostService
 
             $title = $page->dom()->querySelector('title')->getText();
             $descriptionEl = $page->dom()->querySelector('head meta[name=description]');
-            $description = $descriptionEl ? $descriptionEl->getAttribute('content') : null;
+            $description = $descriptionEl?->getAttribute('content');
             $imageEl = $page->dom()->querySelector('head meta[property=\'og:image\']');
-            $imagePathOG = $imageEl ? $imageEl->getAttribute('content') : null;
+            $imagePathOG = $imageEl?->getAttribute('content');
 
-            $post = Post::find($postId);
+            $post = $this->repository->getById($postId);
 
             if (!empty($title) && $title !== $post->title) {
                 $post->title = $title;
                 $post->save();
             }
+
             if (!empty($description) && empty($post->description)) {
                 $post->description = $description;
                 $post->save();
@@ -394,27 +485,38 @@ class PostService
             }
             $image = $image->fit($width, $height);
             Storage::put('thumbnails/' . $filename, $image->stream());
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::debug('Attempt to create thumbnail failed');
+        } catch (Exception $e) {
+            Log::debug('Attempt to create thumbnail failed');
         } finally {
             $browser->close();
         }
     }
 
-    public function generateThumbnailFilename($name, $id)
+    /**
+     * @param $name
+     * @param $id
+     * @return string
+     */
+    public function generateThumbnailFilename($name, $id): string
     {
         return 'thumbnail_' . md5($name) . '_' . $id . '.jpg';
     }
 
-    public function getThumbnailPath($filename)
+    /**
+     * @param $filename
+     * @return string
+     */
+    public function getThumbnailPath($filename): string
     {
         return storage_path('app/public/thumbnails/' . $filename);
     }
-    public function boolValue($value = null): bool
-    {
-        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
-    }
 
+    /**
+     * @param string $image_path
+     * @param string $base_url
+     * @param string $url
+     * @return string
+     */
     private function composeImagePath(string $image_path, string $base_url, string $url): string
     {
         if (str_starts_with($image_path, './')) {
@@ -424,5 +526,14 @@ class PostService
                 Str::replaceFirst('../', '', $image_path);
         }
         return $base_url . $image_path;
+    }
+
+    /**
+     * @param User $user
+     * @return void
+     */
+    public function seedIntroData(User $user): void
+    {
+        Post::seedIntroData($user->id);
     }
 }

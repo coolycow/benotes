@@ -2,98 +2,107 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PostTag;
+use App\Exceptions\TransactionException;
+use App\Http\Requests\Tag\TagStoreRequest;
+use App\Http\Requests\Tag\TagUpdateRequest;
+use App\Repositories\Contracts\TagRepositoryInterface;
 use App\Services\TagService;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Tag;
 
 class TagController extends Controller
 {
-
-    private $service;
-
-    public function __construct()
+    public function __construct(
+        protected TagService $service,
+        protected TagRepositoryInterface $repository
+    )
     {
-        $this->service = new TagService();
+        //
     }
 
-    public function index()
+    /**
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
-        $tags = Tag::where('user_id', Auth::user()->id)->orderBy('name')->get();
-        return response()->json(['data' => $tags]);
+        return response()->json([
+            'data' => $this->repository->getByUserId(Auth::id())
+        ]);
     }
 
-    public function show($id)
+    /**
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
     {
-        if (!is_numeric($id)) {
-            return response()->json('Request requires an id', 400);
-        }
-        $tag = Tag::find($id);
+        $tag = $this->repository->getById($id);;
+
         if (!$tag) {
             return response()->json('Tag not found', 404);
         }
+
         $this->authorize('view', $tag);
+
         return response()->json(['data' => $tag]);
     }
 
-    public function store(Request $request)
+    /**
+     * @param TagStoreRequest $request
+     * @return JsonResponse
+     * @throws TransactionException
+     */
+    public function store(TagStoreRequest $request)
     {
-
-        $this->validate($request, [
-            'name'        => 'required_without:tags|string',
-            'tags.*.name' => 'required_without:name|string',
-        ]);
-
-        $user_id = Auth::user()->id;
         $tags = [];
 
-        if (isset($request->name)) {
-            $tag = $this->service->saveTag($request->name, $user_id);
-            if ($tag) {
-                return response()->json(['data' => $tag], 201);
-            }
-            return response()->json('Tag does already exist', 400);
-        } else if (isset($request->tags)) {
-            foreach ($request->tags as $tag_request_object) {
-                $tag = $this->service->saveTag($tag_request_object['name'], $user_id);
-                if ($tag) {
-                    $tags[] = $tag;
-                }
-            }
+        if ($request->getName()) {
+            return response()->json([
+                'data' => $this->service->create($request->getName(), Auth::id())
+            ], 201);
+        } elseif ($request->getTags()) {
+            $tags = $this->service->createMany($request->getTags(), Auth::id());
         }
 
-        if (count($tags) === 0) {
-            return response()->json('', 200);
-        }
-
-        return response()->json(['data' => $tags], 201);
+        return count($tags) === 0
+            ? response()->json('')
+            : response()->json(['data' => $tags], 201);
     }
 
-    public function update(Request $request, $id)
+    /**
+     * @param TagUpdateRequest $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function update(TagUpdateRequest $request, $id): JsonResponse
     {
-        $this->validate($request, [
-            'name' => 'required|string'
-        ]);
+        if ($this->repository->getByUserIdAndName(Auth::id(), $request->getName())) {
+            return response()->json('Tag does already exist', 400);
+        }
 
-        $tag = Tag::find($id);
+        $tag = $this->repository->getById($id);
         $this->authorize('update', $tag);
 
-        $tag->name = $request->name;
-        $tag->save();
-
-        return response()->json(['data' => $tag], 200);
+        return response()->json([
+            'data' => $tag->update([
+                'name' => $request->getName(),
+            ])
+        ]);
     }
 
-    public function destroy($id)
+    /**
+     * @param $id
+     * @return JsonResponse
+     */
+    public function destroy($id): JsonResponse
     {
-        $tag = Tag::find($id);
-        if (!$tag) {
-            return response()->json('Tag not found.', 400);
-        }
-        $this->authorize('delete', $tag);
+        $tag = $this->repository->getById($id);
 
-        PostTag::where('tag_id', $id)->delete();
+        if (!$tag) {
+            return response()->json('Tag not found.', 404);
+        }
+
+        $this->authorize('delete', $tag);
         $tag->delete();
 
         return response()->json('', 204);

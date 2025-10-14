@@ -11,14 +11,12 @@ class CreatePostTagTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('post_tag', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('post_id')->nullable();
-            $table->foreign('post_id')->references('id')->on('posts');
-            $table->unsignedBigInteger('tag_id')->nullable();
-            $table->foreign('tag_id')->references('id')->on('tags');
+            $table->foreignId('post_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('tag_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->unique(['post_id', 'tag_id']);
         });
     }
 
@@ -27,7 +25,7 @@ class CreatePostTagTable extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('post_tag');
     }

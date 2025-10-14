@@ -2,23 +2,59 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use App\Exceptions\TransactionException;
 use App\Models\Tag;
-use App\Models\PostTag;
+use App\Repositories\Contracts\TagRepositoryInterface;
+use DB;
+use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
-class TagService
+readonly class TagService
 {
-    public function saveTag(string $name, int $user_id): Tag|null
+    public function __construct(
+        protected TagRepositoryInterface $repository,
+    )
     {
-        if (Tag::where('name', $name)->where('user_id', $user_id)->exists()) {
-            return null;
-        }
+        //
+    }
 
-        $tag = Tag::create([
-            'name'    => $name,
+    /**
+     * @param string $name
+     * @param int $user_id
+     * @return Tag|Model|null
+     */
+    public function create(string $name, int $user_id): Tag|Model|null
+    {
+        return Tag::query()->firstOrCreate([
+            'name' => $name,
             'user_id' => $user_id
-        ]);
+        ], []);
+    }
 
-        return $tag;
+    /**
+     * @param array $tags
+     * @param int $user_id
+     * @return array
+     * @throws TransactionException
+     */
+    public function createMany(array $tags, int $user_id): array
+    {
+        try {
+            return DB::transaction(function () use ($tags, $user_id) {
+                $result = [];
+
+                foreach ($tags as $tag_request_object) {
+                    $tag = $this->create($tag_request_object['name'], $user_id);
+
+                    if ($tag) {
+                        $result[] = $tag;
+                    }
+                }
+
+                return $result;
+            });
+        } catch (Throwable $e) {
+            throw TransactionException::error($e);
+        }
     }
 }

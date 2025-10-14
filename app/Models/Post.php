@@ -2,19 +2,56 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Scopes\PostScope;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $collection_id
+ *
+ * @property int $type
+ * @property string $content
+ *
+ * @property string|null $url
+ * @property string|null $title
+ * @property string|null $description
+ *
+ * @property string|null $color
+ * @property string|null $image_path
+ * @property string|null $base_url
+ *
+ * @property int $order
+ *
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ *
+ * @property-read Collection|Tag[] $tags
+ */
 class Post extends Model
 {
     use SoftDeletes, HasFactory;
 
-    const POST_TYPE_TEXT = 1;
-    const POST_TYPE_LINK = 2;
+    const int POST_TYPE_TEXT = 1;
+    const int POST_TYPE_LINK = 2;
 
+
+    /**
+     * @return void
+     */
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::addGlobalScope(new PostScope);
+    }
 
     /**
      * The attributes that should be cast to native types.
@@ -23,8 +60,18 @@ class Post extends Model
      */
     protected $casts = [
         'user_id' => 'integer',
-        // because of SQLite
-        'order'   => 'integer', // because of SQLite
+        'order' => 'integer',
+        'content' => 'string',
+        'type' => 'string',
+        'url' => 'string',
+        'base_url' => 'string',
+        'title' => 'string',
+        'description' => 'string',
+        'color' => 'string',
+        'image_path' => 'string',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime'
     ];
 
     /**
@@ -56,26 +103,30 @@ class Post extends Model
         'deleted_at'
     ];
 
-    public function getTypeAttribute($value)
+    /**
+     * @param $value
+     * @return string
+     */
+    public function getTypeAttribute($value): string
     {
-        if (intval($value) === self::POST_TYPE_LINK) {
-            return 'link';
-        }
-        return 'text';
+        return intval($value) === self::POST_TYPE_LINK ? 'link' : 'text';
     }
 
-    public static function getTypeFromString($value)
+    /**
+     * @param $value
+     * @return int
+     */
+    public static function getTypeFromString($value): int
     {
-        if ($value === 'text') {
-            return self::POST_TYPE_TEXT;
-        } else if ($value === 'link') {
-            return self::POST_TYPE_LINK;
-        }
+        return $value === 'text' ? self::POST_TYPE_TEXT : self::POST_TYPE_LINK;
     }
 
-    public function getImagePathAttribute($value)
+    /**
+     * @param $value
+     * @return string|null
+     */
+    public function getImagePathAttribute($value): ?string
     {
-
         if (Str::startsWith($value, 'thumbnail_')) {
             return Storage::url('thumbnails/' . $value);
         }
@@ -83,24 +134,34 @@ class Post extends Model
         return $value;
     }
 
-    public function setImagePathAttribute($value)
+    /**
+     * @param $value
+     * @return void
+     */
+    public function setImagePathAttribute($value): void
     {
         if (empty($value)) {
             $this->attributes['image_path'] = null;
             return;
         }
+
         $this->attributes['image_path'] = (strlen($value) > 512) ? null : $value;
     }
 
     /**
      * Tags that belong to the post.
      */
-    public function tags()
+    public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
     }
 
-    public function seedIntroData($user_id, $collection_id = null)
+    /**
+     * @param $user_id
+     * @param $collection_id
+     * @return void
+     */
+    public static function seedIntroData($user_id, $collection_id = null): void
     {
         $i = 1;
 

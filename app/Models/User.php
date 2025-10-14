@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Scopes\UserScope;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -9,6 +11,18 @@ use Illuminate\Notifications\Notifiable;
 //use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property int $permission
+ *
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ *
+ * @property-read bool $is_admin
+ */
 class User extends Authenticatable implements JWTSubject
 {
 
@@ -16,11 +30,11 @@ class User extends Authenticatable implements JWTSubject
 
     protected $rememberTokenName = false;
 
-    const ADMIN = 255;
+    const int ADMIN = 255;
 
-    const API_USER = 1;
-    const SHARE_USER = 2;
-    const UNAUTHORIZED_USER = 0;
+    const int API_USER = 1;
+    const int SHARE_USER = 2;
+    const int UNAUTHORIZED_USER = 0;
 
     /**
      * The attributes that are mass assignable.
@@ -31,6 +45,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'permission'
     ];
 
     /**
@@ -40,7 +55,6 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $hidden = [
         'password',
-        //'remember_token',
     ];
 
     /**
@@ -49,11 +63,31 @@ class User extends Authenticatable implements JWTSubject
      * @var array<string, string>
      */
     protected $casts = [
-        // 'email_verified_at' => 'datetime',
-        'permission' => 'integer', // because of SQLite
+        'permission' => 'integer',
+        'is_admin' => 'boolean'
     ];
 
-    public function sendPasswordResetNotification($token)
+    protected $appends = ['is_admin'];
+
+    /**
+     * @return void
+     */
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::addGlobalScope(new UserScope);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->permission === self::ADMIN;
+    }
+
+    public function sendPasswordResetNotification($token): void
     {
         $this->notify(new \App\Notifications\ResetPassword($token));
     }
@@ -63,7 +97,7 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return mixed
      */
-    public function getJWTIdentifier()
+    public function getJWTIdentifier(): string
     {
         return $this->getKey();
     }
@@ -73,12 +107,12 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return array
      */
-    public function getJWTCustomClaims()
+    public function getJWTCustomClaims(): array
     {
         return [];
     }
 
-    public static function resetUrl()
+    public static function resetUrl(): string
     {
         return '/reset';
     }
@@ -91,5 +125,13 @@ class User extends Authenticatable implements JWTSubject
             return self::SHARE_USER;
         }
         return self::UNAUTHORIZED_USER;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsAdminAttribute(): bool
+    {
+        return $this->isAdmin();
     }
 }

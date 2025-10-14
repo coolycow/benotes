@@ -2,16 +2,40 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Scopes\CollectionScope;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $parent_id
+ * @property int|null $icon_id
+ * @property string $name
+ *
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ */
 class Collection extends Model
 {
-    public $timestamps = false;
-    const IMPORTED_COLLECTION_NAME = 'Imported Bookmarks';
     use SoftDeletes, HasFactory;
+
+    const string IMPORTED_COLLECTION_NAME = 'Imported Bookmarks';
+
+    /**
+     * @return void
+     */
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::addGlobalScope(new CollectionScope);
+    }
 
     /**
      * The attributes that should be cast to native types.
@@ -19,10 +43,13 @@ class Collection extends Model
      * @var array
      */
     protected $casts = [
-        'user_id'   => 'integer',
-        // because of SQLite
-        'icon_id'   => 'integer',
+        'user_id' => 'integer',
+        'icon_id' => 'integer',
         'parent_id' => 'integer',
+        'name' => 'string',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime'
     ];
 
     /**
@@ -45,25 +72,41 @@ class Collection extends Model
      */
     protected $hidden = [
         'user_id',
-        'deleted_at'
+        'deleted_at',
+        'created_at',
+        'updated_at',
     ];
 
-    public static function getCollectionId($id, $is_uncategorized = false)
+    /**
+     * @param int|null $id
+     * @param bool $is_uncategorized
+     * @return int|null
+     */
+    public static function getCollectionId(?int $id, bool $is_uncategorized = false): ?int
     {
-        return $is_uncategorized || $id === null ? null : intval($id);
+        return $is_uncategorized || is_null($id) ? null : $id;
     }
 
-    public function parent(): Relations\BelongsTo
+    /**
+     * @return BelongsTo
+     */
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public function children(): Relations\HasMany
+    /**
+     * @return HasMany
+     */
+    public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
     }
 
-    public function nested(): Relations\HasMany
+    /**
+     * @return HasMany
+     */
+    public function nested(): HasMany
     {
         return $this->children()->with('nested')->orderBy('name');
     }

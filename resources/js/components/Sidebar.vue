@@ -2,7 +2,7 @@
     <transition name="sidebar-slide">
         <div v-if="showSidebar" class="sidebar w-full md:w-48 lg:w-64 xl:w-1/6 theme__sidebar">
             <div class="list pt-2">
-                <ol class="mb-12">
+                <ol class="mb-12 main-menu">
                     <li>
                         <router-link to="/search" class="collection theme__sidebar__collection">
                             <svg-vue class="w-4 fill-current mr-2" icon="remix/search-line" />
@@ -29,7 +29,7 @@
                             <span class="align-middle text-gray-700 theme__sidebar__label">Recycle Bin</span>
                         </router-link>
                     </li>
-                    <li>
+                    <li v-if="authUser.is_admin">
                         <router-link to="/users" class="collection theme__sidebar__collection">
                             <svg-vue class="w-4 fill-current mr-2" icon="remix/group-fill" />
                             <span class="align-middle text-gray-700 theme__sidebar__label">Users</span>
@@ -63,7 +63,7 @@
             </div>
             <router-link to="/c/create" class="block md:mx-8 mx-4 mt-4 text-orange-600 font-medium">
                 <svg-vue class="w-4 mr-2 fill-current align-text-bottom" icon="remix/folder-add-fill" />
-                <span class="align-middle">Create a new collection</span>
+                <span class="align-middle">Add collection</span>
             </router-link>
             <div class="w-full px-4 md:px-6 mb-0 mt-auto pt-12">
                 <svg-vue class="w-6 align-text-bottom" icon="logo_64x64" />
@@ -169,6 +169,10 @@ export default {
         display: inline-block;
     }
 
+    .main-menu li {
+        margin-top: 0.5rem;
+    }
+
     .menu {
         margin-top: -0.9rem;
 
@@ -218,7 +222,7 @@ export default {
     // outside of .list in order to be able to be overriden
     .router-link-exact-active-parent,
     .collection.router-link-exact-active {
-        @apply bg-orange-200 text-gray-700 border-orange-600 font-semibold;
+        @apply bg-orange-200 text-gray-700 border-orange-600 font-medium;
     }
 }
 

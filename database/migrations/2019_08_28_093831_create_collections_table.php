@@ -11,14 +11,19 @@ class CreateCollectionsTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('collections', function (Blueprint $table) {
-            $table->increments('id');
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('parent_id')->nullable()
+                ->constrained('collections')->cascadeOnUpdate()->cascadeOnDelete();
+
             $table->string('name');
-            $table->unsignedInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->unsignedSmallInteger('icon_id')->nullable()->index();
+
             $table->softDeletes();
+            $table->timestamps();
         });
     }
 
@@ -27,7 +32,7 @@ class CreateCollectionsTable extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('collections');
     }

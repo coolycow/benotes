@@ -22,17 +22,16 @@ class ThumbnailCommand extends Command
      */
     protected $description = 'Generate missing thumbnails with chrome';
 
-    private $service;
-
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(
+        protected PostService $service,
+    )
     {
         parent::__construct();
-        $this->service = new PostService;
     }
 
     /**

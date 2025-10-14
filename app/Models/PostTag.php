@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $post_id
+ * @property int $tag_id
+ */
 class PostTag extends Model
 {
     public $timestamps = false;
@@ -21,8 +25,8 @@ class PostTag extends Model
      * @var array
      */
     protected $casts = [
-        'tag_id' => 'integer', // because of SQLite
-        'post_id' => 'integer', // because of SQLite
+        'tag_id' => 'integer',
+        'post_id' => 'integer',
     ];
 
     /**
@@ -31,7 +35,8 @@ class PostTag extends Model
      * @var array
      */
     protected $fillable = [
-        'post_id', 'tag_id'
+        'tag_id',
+        'post_id',
     ];
 
     /**

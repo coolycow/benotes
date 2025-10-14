@@ -11,14 +11,18 @@ class CreateTagsTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('tags', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
             $table->string('name');
-            $table->unsignedInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+
+            $table->timestamps();
             $table->softDeletes();
+
+            $table->unique(['user_id', 'name']);
         });
     }
 
@@ -27,7 +31,7 @@ class CreateTagsTable extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('tags');
     }

@@ -23,7 +23,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/login-password', [AuthController::class, 'loginPassword']);
+Route::post('auth/login-code', [AuthController::class, 'loginCode']);
+Route::post('auth/send-code', [AuthController::class, 'sendCode'])
+    ->middleware('throttle:3,1');;
 Route::post('auth/refresh', [AuthController::class, 'refresh']);
 Route::post('auth/forgot', [AuthController::class, 'sendReset']);
 Route::post('auth/reset', [AuthController::class, 'reset']);

@@ -2,109 +2,132 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\UserStoreRequest;
+use App\Http\Requests\UserUpdateRequest;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\PostService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Gate;
 
 use App\Models\User;
-use App\Models\Collection;
-use App\Models\Post;
 
 class UserController extends Controller
 {
-
-    public function index()
+    public function __construct(
+        protected UserRepositoryInterface $userRepository,
+        protected PostService $postService
+    )
     {
-        $users = User::all();
-        return response()->json(['data' => $users], 200);
+        //
     }
 
-    public function show(int $id)
+    public function index(): JsonResponse
     {
-        $user = User::find($id);
+        if (!Auth::check() || !Auth::user()->isAdmin()) {
+            return response()->json('Permission denied', 403);
+        }
+
+        $users = User::all();
+        return response()->json(['data' => $users]);
+    }
+
+    /**
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
+    {
+        $user = $this->userRepository->getById($id);;
+
         if ($user === null) {
             return response()->json('User not found', 404);
         }
-        return response()->json(['data' => $user], 200);
+
+        return response()->json(['data' => $user]);
     }
 
-    public function store(Request $request)
+    /**
+     * @param UserStoreRequest $request
+     * @return JsonResponse
+     */
+    public function store(UserStoreRequest $request): JsonResponse
     {
-        $this->validate($request, [
-            'name'     => 'required|string',
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
-
         $this->authorize('create', User::class);
 
-        $alreadyExistingUser = User::where('email', $request->email)->first();
-
-        if (!empty($alreadyExistingUser)) {
+        if ($this->userRepository->getByEmail($request->getEmail())) {
             return response()->json('Email is already in use.', 400);
         }
 
-        $user = new User;
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->permission = 7;
-        $user->save();
+        $user = User::query()->create([
+            'name' => $request->getName(),
+            'email' => $request->getEmail(),
+            'password' => Hash::make($request->getPassword()),
+            'permission' => 7
+        ]);
 
-        (new \App\Models\Post())->seedIntroData($user->id);
+        $this->postService->seedIntroData($user);
 
         return response()->json(['data' => $user], 201);
     }
 
-    public function update(Request $request, int $id)
+    /**
+     * @param UserUpdateRequest $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(UserUpdateRequest $request, int $id): JsonResponse
     {
-        $this->validate($request, [
-            'name' => 'string',
-            'email' => 'email',
-            'password_old' => 'string',
-            'password_new' => 'string|required_with:password_old'
-        ]);
+        if (!Auth::user()->isAdmin()) {
+            $id = Auth::id();
+        }
 
-        if (isset($request->email)) {
-            $emailUser = User::where('email', $request->email)->first();
+        if ($request->getEmail()) {
+            $emailUser = $this->userRepository->getByEmail($request->getEmail());
+
             if ($emailUser->id !== $id) {
                 return response()->json('Email is already in use.', 400);
             }
         }
 
-        $user = User::find($id);
+        $user = $this->userRepository->getById($id);
+
         if (!$user) {
             return response()->json('User not found.', 404);
         }
 
         $response = Gate::inspect('update', $user);
+
         if (!$response->allowed()) {
             return response()->json($response->message(), 403);
         }
 
         $user->update($request->only('name', 'email'));
 
-        if (Hash::check($request->password_old, $user->password)) {
+        if (Hash::check($request->getPasswordOld(), $user->password)) {
             $user->update([
-                'password' => Hash::make($request->password_new)
+                'password' => Hash::make($request->getPasswordNew())
             ]);
         }
 
-        return response()->json(['data' => $user], 200);
+        return response()->json(['data' => $user]);
     }
 
-    public function destroy($id)
+    /**
+     * @param $id
+     * @return JsonResponse
+     */
+    public function destroy($id): JsonResponse
     {
-        $user = User::find($id);
+        $user = $this->userRepository->getById($id);;
+
         if (!$user) {
             return response()->json('User not found.', 404);
         }
+
         $this->authorize('delete', User::class);
 
-        Post::where('user_id', $user->id)->forceDelete();
-        Collection::where('user_id', $user->id)->forceDelete();
-        $user->forceDelete();
-
-        return response()->json('User was deleted.', 200);
+        return response()->json('User was deleted.');
     }
 }

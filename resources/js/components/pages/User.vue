@@ -23,14 +23,14 @@
                     class="input"
                     required />
             </div>
-            <div class="mb-8">
+            <!--<div class="mb-8">
                 <label class="label">Password</label>
                 <input
                     v-model="password"
                     placeholder="Password"
                     type="password"
                     class="input" />
-            </div>
+            </div>-->
 
             <p v-if="error" class="text-red-500 mt-4">
                 {{ error }}
@@ -64,7 +64,7 @@
                     class="input"
                     required />
             </div>
-            <div v-if="isOwner" class="mb-8">
+            <!--<div v-if="isOwner" class="mb-8">
                 <label class="label">Old Password</label>
                 <input
                     v-model="password_old"
@@ -79,7 +79,7 @@
                     placeholder="New Password"
                     type="password"
                     class="input" />
-            </div>
+            </div>-->
 
             <p v-if="error" class="text-red-500 mt-4">
                 {{ error }}
@@ -116,9 +116,9 @@ export default {
         return {
             name: null,
             email: null,
-            password: null,
-            password_old: null,
-            password_new: null,
+            //password: null,
+            //password_old: null,
+            //password_new: null,
             error: null,
             themes: [
                 { id: 'default', label: 'Default' },
@@ -133,8 +133,8 @@ export default {
 
             if (
                 this.name === this.authUser.name &&
-                this.email === this.authUser.email &&
-                (this.password_old === null || this.password_new === null)
+                this.email === this.authUser.email /*&&
+                (this.password_old === null || this.password_new === null)*/
             ) {
                 return
             }
@@ -143,8 +143,8 @@ export default {
             const params = {}
             if (this.name !== this.authUser.name) params.name = this.name
             if (this.email !== this.authUser.email) params.email = this.email
-            if (this.password_old) params.password_old = this.password_old
-            if (this.password_new) params.password_new = this.password_new
+            //if (this.password_old) params.password_old = this.password_old
+            //if (this.password_new) params.password_new = this.password_new
 
             axios
                 .patch('/api/users/' + this.id, params)
@@ -169,7 +169,7 @@ export default {
                 .post('/api/users', {
                     name: this.name,
                     email: this.email,
-                    password: this.password,
+                    //password: this.password,
                 })
                 .then((response) => {
                     this.$router.push({ path: '/users' })

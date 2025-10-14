@@ -2,152 +2,135 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Collection;
+use App\Exceptions\TransactionException;
+use App\Http\Requests\Collection\CollectionDeleteRequest;
+use App\Http\Requests\Collection\CollectionIndexRequest;
+use App\Http\Requests\Collection\CollectionStoreRequest;
+use App\Http\Requests\Collection\CollectionUpdateRequest;
+use App\Repositories\Contracts\CollectionRepositoryInterface;
 use App\Services\CollectionService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class CollectionController extends Controller
 {
-
-    private $service;
-
-    public function __construct()
+    public function __construct(
+        protected CollectionService $service,
+        protected CollectionRepositoryInterface $repository
+    )
     {
-        $this->service = new CollectionService();
+        //
     }
 
-    public function index(Request $request)
+    /**
+     * @param CollectionIndexRequest $request
+     * @return JsonResponse
+     */
+    public function index(CollectionIndexRequest $request): JsonResponse
     {
-        $this->validate($request, [
-            'nested' => 'nullable',
-        ]);
+        $collections = $request->getNested()
+            ? $this->repository->getNested(Auth::id())
+            : $this->repository->getByUserId(Auth::id());
 
-        $request->nested = boolval($request->nested);
-        $collections = null;
-
-        if ($request->nested) {
-            $collections = Collection::with('nested')
-                ->where('user_id', Auth::user()->id)
-                ->whereNull('parent_id')
-                ->orderBy('name')
-                ->get();
-        } else {
-            $collections = Collection::where('user_id', Auth::user()->id)->orderBy('name')->get();
-        }
         return response()->json(['data' => $collections]);
     }
 
-    public function show($id)
+    /**
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
     {
-        if (!is_numeric($id)) {
-            return response()->json('Requires an id', 400);
-        }
-        $collection = Collection::find($id);
+        $collection = $this->repository->getById($id);;
+
         if (!$collection) {
             return response()->json('Collection not found', 404);
         }
+
         $this->authorize('view', $collection);
+
         return response()->json(['data' => $collection]);
     }
 
-    public function store(Request $request)
+    /**
+     * @param CollectionStoreRequest $request
+     * @return JsonResponse
+     */
+    public function store(CollectionStoreRequest $request): JsonResponse
     {
-        $this->validate($request, [
-            'name' => 'required|string',
-            'parent_id' => 'nullable|integer',
-            'icon_id' => 'nullable|integer'
-        ]);
-
         $parent_id = null;
-        if (isset($request->parent_id)) {
-            $collection = Collection::find($request->parent_id);
+
+        if ($request->getParentId()) {
+            $collection = $this->repository->getById($request->getParentId());;
+
             if (!$collection) {
                 return response()->json('Collection not found', 404);
             }
+
             $this->authorize('inherit', $collection);
             $parent_id = $collection->id;
         }
 
         $collection = $this->service->store(
-            $request->name,
-            Auth::user()->id,
+            $request->getName(),
+            Auth::id(),
             $parent_id,
-            $request->icon_id
+            $request->getIconId()
         );
 
         return response()->json(['data' => $collection], 201);
     }
 
-    public function update(Request $request, $id)
+    /**
+     * @param CollectionUpdateRequest $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function update(CollectionUpdateRequest $request, $id): JsonResponse
     {
-        $this->validate($request, [
-            'name' => 'nullable|string',
-            'icon_id' => 'nullable|integer',
-            'parent_id' => 'nullable|integer',
-            'is_root' => 'nullable|boolean',
-        ]);
-
-        //$request->is_root = boolval($request->is_root);
-
-        $collection = Collection::find($id);
+        $collection = $this->repository->getById($id);
         $this->authorize('update', $collection);
 
-        /*
-        if (isset($request->name)) {
-            $collection->name = $request->name;
-        }
-        if (isset($request->icon_id)) {
-            $collection->icon_id = $request->icon_id;
-        }
-        */
-
-        $parent_id = $request->parent_id;
-        if (isset($request->parent_id)) {
-            if ($collection->id === $request->parent_id)
+        if ($request->getParentId()) {
+            if ($collection->getKey() === $request->getParentId())
                 return response()->json('Not possible', Response::HTTP_BAD_REQUEST);
-            $parent_collection = Collection::find($request->parent_id);
-            if (!$parent_collection) {
-                return response()->json('Collection not found', Response::HTTP_NOT_FOUND);
+
+            if (!$parent_collection = $this->repository->getById($request->getParentId())) {
+                return response()->json('Parent collection not found', Response::HTTP_NOT_FOUND);
             }
+
             $this->authorize('inherit', $parent_collection);
-            //$collection->parent_id = $parent_collection->id;
-            $parent_id = $parent_collection->id;
         }
-
-        /*
-        if ($request->is_root) {
-            $collection->parent_id = null;
-        }
-
-        $collection->save();
-        */
 
         $collection = $this->service->update(
             $id,
-            $request->name,
-            $parent_id,
-            boolval($request->is_root),
-            $request->icon_id
+            $request->getName(),
+            $request->getIsRoot(),
+            $request->getParentId(),
+            $request->getIconId()
         );
 
-        return response()->json(['data' => $collection], 200);
+        return response()->json(['data' => $collection]);
     }
 
-    public function destroy(Request $request, $id)
+    /**
+     * @param CollectionDeleteRequest $request
+     * @param $id
+     * @return JsonResponse
+     * @throws TransactionException
+     */
+    public function destroy(CollectionDeleteRequest $request, $id): JsonResponse
     {
-        $this->validate($request, [
-            'nested' => 'nullable',
-        ]);
+        $collection = $this->repository->getById($id);;
 
-        $collection = Collection::find($id);
         if (!$collection) {
             return response()->json('Collection not found.', 400);
         }
+
         $this->authorize('delete', $collection);
 
-        $this->service->delete($id, boolval($request->nested), Auth::id());
+        $this->service->delete($id, $request->getNested(), Auth::id());
 
         return response()->json('', 204);
     }

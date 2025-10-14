@@ -142,6 +142,13 @@ return [
             'database' => env('REDIS_CACHE_DB', '1'),
         ],
 
+        'queue' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT'),
+            'database' => env('REDIS_QUEUE_DB', '2'),
+        ],
     ],
 
 ];

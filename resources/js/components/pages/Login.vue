@@ -22,7 +22,21 @@
                         required />
                 </div>
 
-                <div class="mb-8">
+                <!-- Button to send code -->
+                <div class="mb-4" v-if="!isCodeSent">
+                    <button
+                        @click.prevent="sendCode"
+                        class="button w-full">
+                        Send Code
+                    </button>
+                </div>
+
+                <!-- Message after code is sent -->
+                <div class="mb-4 text-sm text-gray-600" v-if="isCodeSent">
+                    A confirmation code has been sent to your email. Please check your inbox.
+                </div>
+
+                <!--<div class="mb-8">
                     <label class="label" for="password">Password</label>
                     <input
                         v-model="password"
@@ -30,6 +44,17 @@
                         type="password"
                         name="password"
                         placeholder="Password"
+                        required />
+                </div>-->
+
+                <div class="mb-8">
+                    <label class="label" for="code">Confirmation Code</label>
+                    <input
+                        v-model="code"
+                        class="input"
+                        type="text"
+                        name="code"
+                        placeholder="Enter code from email"
                         required />
                 </div>
 
@@ -57,16 +82,36 @@ export default {
     data() {
         return {
             email: '',
-            password: '',
+            // password: '',
+            code: '',
             error: '',
+            isCodeSent: false,
         }
     },
     methods: {
+        sendCode() {
+            if (!this.email) {
+                this.error = 'Please enter your email.'
+                return
+            }
+
+            axios
+                .post('/api/auth/send-code', { email: this.email })
+                .then(() => {
+                    this.isCodeSent = true
+                    this.error = ''
+                })
+                .catch((error) => {
+                    this.error = error.response?.data?.message || 'Failed to send code'
+                })
+        },
+
         authenticate() {
             axios
-                .post('/api/auth/login', {
+                .post('/api/auth/login-code', {
                     email: this.email,
-                    password: this.password,
+                    // password: this.password,
+                    code: this.code,
                 })
                 .then((response) => {
                     const token = response.data.data.token.access_token
