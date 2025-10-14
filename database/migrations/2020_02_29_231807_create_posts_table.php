@@ -16,8 +16,11 @@ class CreatePostsTable extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignId('collection_id')->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('user_id')
+                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
+            $table->foreignId('collection_id')->nullable()
+                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
 
             $table->text('content');
             $table->tinyInteger('type');

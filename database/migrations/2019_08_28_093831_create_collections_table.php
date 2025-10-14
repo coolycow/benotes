@@ -15,7 +15,10 @@ class CreateCollectionsTable extends Migration
     {
         Schema::create('collections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
+            $table->foreignId('user_id')
+                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
             $table->foreignId('parent_id')->nullable()
                 ->constrained('collections')->cascadeOnUpdate()->cascadeOnDelete();
 

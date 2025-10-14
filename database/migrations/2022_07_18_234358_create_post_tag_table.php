@@ -14,8 +14,12 @@ class CreatePostTagTable extends Migration
     public function up(): void
     {
         Schema::create('post_tag', function (Blueprint $table) {
-            $table->foreignId('post_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignId('tag_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('post_id')
+                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
+            $table->foreignId('tag_id')
+                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
             $table->unique(['post_id', 'tag_id']);
         });
     }

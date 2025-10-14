@@ -15,12 +15,16 @@ class CreateSharesTable extends Migration
     {
         Schema::create('shares', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('created_by')
+                ->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
+
+            $table->foreignId('collection_id')->nullable()
+                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
+            $table->foreignId('post_id')->nullable()
+                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
             $table->text('token');
-
-            $table->foreignId('collection_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignId('post_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignId('created_by')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
-
             $table->unsignedTinyInteger('permission')->default(4);
             $table->boolean('is_active');
         });
