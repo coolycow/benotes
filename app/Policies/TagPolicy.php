@@ -23,11 +23,11 @@ class TagPolicy
     /**
      * Determine whether the user can view the tag.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Tag  $tag
-     * @return mixed
+     * @param User $user
+     * @param Tag $tag
+     * @return bool
      */
-    public function view(User $user, Tag $tag)
+    public function view(User $user, Tag $tag): bool
     {
         return $user->id === $tag->user_id;
     }
@@ -35,11 +35,11 @@ class TagPolicy
     /**
      * Determine whether the user can update the tag.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Tag  $tag
-     * @return mixed
+     * @param User $user
+     * @param Tag $tag
+     * @return bool
      */
-    public function update(User $user, Tag $tag)
+    public function update(User $user, Tag $tag): bool
     {
         return $user->id === $tag->user_id;
     }
@@ -47,11 +47,11 @@ class TagPolicy
     /**
      * Determine whether the user can delete the tag.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Tag  $tag
-     * @return mixed
+     * @param User $user
+     * @param Tag $tag
+     * @return bool
      */
-    public function delete(User $user, Tag $tag)
+    public function delete(User $user, Tag $tag): bool
     {
         return $user->id === $tag->user_id;
     }

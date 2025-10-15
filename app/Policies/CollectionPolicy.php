@@ -23,11 +23,11 @@ class CollectionPolicy
     /**
      * Determine whether the user can view the collection.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Collection  $collection
-     * @return mixed
+     * @param User $user
+     * @param Collection $collection
+     * @return bool
      */
-    public function view(User $user, Collection $collection)
+    public function view(User $user, Collection $collection): bool
     {
         return $user->id === $collection->user_id;
     }
@@ -35,11 +35,11 @@ class CollectionPolicy
     /**
      * Determine whether the user can update the collection.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Collection  $collection
-     * @return mixed
+     * @param User $user
+     * @param Collection $collection
+     * @return bool
      */
-    public function update(User $user, Collection $collection)
+    public function update(User $user, Collection $collection): bool
     {
         return $user->id === $collection->user_id;
     }
@@ -47,11 +47,11 @@ class CollectionPolicy
     /**
      * Determine whether the user can delete the collection.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Collection  $collection
-     * @return mixed
+     * @param User $user
+     * @param Collection $collection
+     * @return bool
      */
-    public function delete(User $user, Collection $collection)
+    public function delete(User $user, Collection $collection): bool
     {
         return $user->id === $collection->user_id;
     }
@@ -59,16 +59,21 @@ class CollectionPolicy
     /**
      * Determine whether the user can inherit the collection.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Collection  $collection
-     * @return mixed
+     * @param User $user
+     * @param Collection $collection
+     * @return bool
      */
-    public function inherit(User $user, Collection $collection)
+    public function inherit(User $user, Collection $collection): bool
     {
         return $user->id === $collection->user_id;
     }
 
-    public function share(User $user, Collection $collection)
+    /**
+     * @param User $user
+     * @param Collection $collection
+     * @return bool
+     */
+    public function share(User $user, Collection $collection): bool
     {
         return $user->id === $collection->user_id;
     }

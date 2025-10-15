@@ -6,6 +6,7 @@ use App\Scopes\PostScope;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -36,6 +37,8 @@ use Illuminate\Support\Str;
  * @property-read string|null $human_created_at
  * @property-read string|null $human_updated_at
  * @property-read string|null $human_deleted_at
+ *
+ * @property-read User $user
  * @property-read Collection|Tag[] $tags
  */
 class Post extends Model
@@ -158,11 +161,19 @@ class Post extends Model
     }
 
     /**
-     * Tags that belong to the post.
+     * @return BelongsToMany
      */
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

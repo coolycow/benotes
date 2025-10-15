@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\UserPermissionEnum;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -91,7 +92,7 @@ class InstallCommand extends Command
         $user->name = $username;
         $user->email = $email;
         $user->password = Hash::make($password);
-        $user->permission = User::ADMIN;
+        $user->permission = UserPermissionEnum::Admin;
         $user->save();
 
         (new Post())->seedIntroData($user->id);

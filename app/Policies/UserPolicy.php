@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserPermissionEnum;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Auth\Access\Response;
@@ -23,22 +24,22 @@ class UserPolicy
     /**
      * Determine whether the user can create users.
      *
-     * @param  \App\Models\User  $authUser
-     * @return mixed
+     * @param User $authUser
+     * @return bool
      */
-    public function create(User $authUser)
+    public function create(User $authUser): bool
     {
-        return $authUser->permission === User::ADMIN;
+        return $authUser->permission === UserPermissionEnum::Admin;
     }
 
     /**
      * Determine whether the user can update the user.
      *
-     * @param  \App\Models\User  $authUser
-     * @param  \App\Models\User  $user
-     * @return mixed
+     * @param User $authUser
+     * @param User $user
+     * @return Response
      */
-    public function update(User $authUser, User $user)
+    public function update(User $authUser, User $user): Response
     {
         return $authUser->id === $user->id
             ? Response::allow()
@@ -48,11 +49,11 @@ class UserPolicy
     /**
      * Determine whether the user can delete the user.
      *
-     * @param  \App\Models\User  $authUser
-     * @return mixed
+     * @param User $authUser
+     * @return bool
      */
-    public function delete(User $authUser)
+    public function delete(User $authUser): bool
     {
-        return $authUser->permission === User::ADMIN;
+        return $authUser->permission === UserPermissionEnum::Admin;
     }
 }

@@ -7,7 +7,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Collection;
 use App\Models\Post;
-use App\Models\PublicShare;
+use App\Models\Share;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 class ShareTest extends TestCase
@@ -42,7 +42,7 @@ class ShareTest extends TestCase
         Post::factory(['collection_id' => $collection->id])->create();
         $token = $this->faker->slug();
 
-        PublicShare::create([
+        Share::create([
             'token' => $token,
             'collection_id' => $collection->id,
             'is_active' => true,

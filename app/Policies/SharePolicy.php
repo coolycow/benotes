@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\PublicShare;
+use App\Models\Share;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class PublicSharePolicy
+class SharePolicy
 {
     use HandlesAuthorization;
 
@@ -23,12 +23,12 @@ class PublicSharePolicy
     /**
      * Determine whether the user can delete the share.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\PublicShare  $share
-     * @return mixed
+     * @param User $user
+     * @param Share $share
+     * @return bool
      */
-    public function delete(User $user, PublicShare $share)
+    public function delete(User $user, Share $share): bool
     {
-        return $user->id === $share->created_by;
+        return $user->getKey() === $share->user_id;
     }
 }

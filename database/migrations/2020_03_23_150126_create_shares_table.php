@@ -15,7 +15,7 @@ class CreateSharesTable extends Migration
     {
         Schema::create('shares', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('created_by')
+            $table->foreignId('user_id')
                 ->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
 
             $table->foreignId('collection_id')->nullable()

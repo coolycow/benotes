@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\UserPermissionEnum;
 use App\Scopes\UserScope;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,12 +18,17 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
  * @property string $name
  * @property string $email
  * @property string $password
- * @property int $permission
+ * @property UserPermissionEnum $permission
  *
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
  * @property-read bool $is_admin
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection|Collection[] $collections
+ * @property-read \Illuminate\Database\Eloquent\Collection|Post[] $posts
+ * @property-read \Illuminate\Database\Eloquent\Collection|Share[] $shares
+ * @property-read \Illuminate\Database\Eloquent\Collection|Tag[] $tags
  */
 class User extends Authenticatable implements JWTSubject
 {
@@ -29,12 +36,6 @@ class User extends Authenticatable implements JWTSubject
     use /*HasApiTokens,*/ HasFactory, Notifiable;
 
     protected $rememberTokenName = false;
-
-    const int ADMIN = 255;
-
-    const int API_USER = 1;
-    const int SHARE_USER = 2;
-    const int UNAUTHORIZED_USER = 0;
 
     /**
      * The attributes that are mass assignable.
@@ -63,7 +64,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array<string, string>
      */
     protected $casts = [
-        'permission' => 'integer',
+        'permission' => UserPermissionEnum::class,
         'is_admin' => 'boolean'
     ];
 
@@ -84,7 +85,7 @@ class User extends Authenticatable implements JWTSubject
      */
     public function isAdmin(): bool
     {
-        return $this->permission === self::ADMIN;
+        return $this->permission === UserPermissionEnum::Admin;
     }
 
     public function sendPasswordResetNotification($token): void
@@ -117,14 +118,14 @@ class User extends Authenticatable implements JWTSubject
         return '/reset';
     }
 
-    public static function getAuthenticationType(): int
+    public static function getAuthenticationType(): UserPermissionEnum
     {
         if (Auth::guard('api')->check()) {
-            return self::API_USER;
+            return UserPermissionEnum::Api;
         } else if (Auth::guard('share')->check()) {
-            return self::SHARE_USER;
+            return UserPermissionEnum::Share;
         }
-        return self::UNAUTHORIZED_USER;
+        return UserPermissionEnum::Unauthorized;
     }
 
     /**
@@ -133,5 +134,37 @@ class User extends Authenticatable implements JWTSubject
     public function getIsAdminAttribute(): bool
     {
         return $this->isAdmin();
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function collections(): HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function shares(): HasMany
+    {
+        return $this->hasMany(Share::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
     }
 }

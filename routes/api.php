@@ -6,7 +6,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\PublicShareController;
+use App\Http\Controllers\ShareController;
 use App\Http\Controllers\TestingController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
@@ -62,10 +62,10 @@ Route::group([
     Route::patch('users/{id}', [UserController::class, 'update']);
     Route::delete('users/{id}', [UserController::class, 'destroy']);
 
-    Route::get('shares/public', [PublicShareController::class, 'index']);
-    Route::post('shares/public', [PublicShareController::class, 'store']);
-    Route::patch('shares/public/{id}', [PublicShareController::class, 'update']);
-    Route::delete('shares/public/{id}', [PublicShareController::class, 'destroy']);
+    Route::get('shares/public', [ShareController::class, 'index']);
+    Route::post('shares/public', [ShareController::class, 'store']);
+    Route::patch('shares/public/{id}', [ShareController::class, 'update']);
+    Route::delete('shares/public/{id}', [ShareController::class, 'destroy']);
 
     Route::post('files', [FileController::class, 'store']);
 
@@ -79,7 +79,7 @@ Route::group([
     Route::get('posts', [PostController::class, 'index']);
     Route::get('posts/{id}', [PostController::class, 'show']);
 
-    Route::get('shares/public/me', [PublicShareController::class, 'me']);
+    Route::get('shares/public/me', [ShareController::class, 'me']);
 });
 
 

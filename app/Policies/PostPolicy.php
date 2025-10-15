@@ -24,26 +24,25 @@ class PostPolicy
     /**
      * Determine whether the user can view the post.
      *
-     * @param  mixed      $user
-     * @param  \App\Models\Post  $post
-     * @return mixed
+     * @param  mixed $user
+     * @param Post $post
+     * @return bool
      */
-    public function view($user, Post $post)
+    public function view(User|Share $user, Post $post): bool
     {
-        if ($user instanceof User)
-            return $user->id === $post->user_id;
-        else if ($user instanceof Share)
-            return $user->collection_id === $post->collection_id;
+        return $user instanceof User
+            ? $user->id === $post->user_id
+            : $user->collection_id === $post->collection_id;
     }
 
     /**
      * Determine whether the user can update the post.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Post  $post
-     * @return mixed
+     * @param User $user
+     * @param Post $post
+     * @return bool
      */
-    public function update(User $user, Post $post)
+    public function update(User $user, Post $post): bool
     {
         return $user->id === $post->user_id;
     }
@@ -51,11 +50,11 @@ class PostPolicy
     /**
      * Determine whether the user can delete the post.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Post  $post
-     * @return mixed
+     * @param User $user
+     * @param Post $post
+     * @return bool
      */
-    public function delete(User $user, Post $post)
+    public function delete(User $user, Post $post): bool
     {
         return $user->id === $post->user_id;
     }

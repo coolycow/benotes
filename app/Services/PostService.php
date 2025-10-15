@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\UserPermissionEnum;
 use App\Jobs\ProcessMissingThumbnail;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\PostTagRepositoryInterface;
@@ -37,7 +38,7 @@ readonly class PostService
      * @param int|null $tag_id
      * @param bool $withTags
      * @param string|null $filter
-     * @param int $auth_type
+     * @param UserPermissionEnum $auth_type
      * @param bool $is_archived
      * @param Post|null $after_post
      * @param int|null $offset
@@ -51,7 +52,7 @@ readonly class PostService
         ?int $tag_id = null,
         bool $withTags = false,
         ?string $filter = null,
-        int $auth_type = User::UNAUTHORIZED_USER,
+        UserPermissionEnum $auth_type = UserPermissionEnum::Unauthorized,
         bool $is_archived = false,
         Post $after_post = null,
         ?int $offset = null,
@@ -69,7 +70,7 @@ readonly class PostService
             $posts = $posts->whereIn('id', $post_ids);
         }
 
-        if ($auth_type === User::API_USER) {
+        if ($auth_type === UserPermissionEnum::Api) {
             if ($collection_id > 0 && $filter !== '') {
                 $collection_ids = Collection::with('children')
                     ->where('parent_id', $collection_id)
@@ -90,15 +91,15 @@ readonly class PostService
             } else {
                 $posts = $posts->where('user_id', Auth::user()->id);
             }
-        } elseif ($auth_type === User::SHARE_USER) {
+        } elseif ($auth_type === UserPermissionEnum::Share) {
             $share = Auth::guard('share')->user();
             $posts = $posts->where([
                 'collection_id' => $share->collection_id,
-                'user_id' => $share->created_by
+                'user_id' => $share->user_id
             ]);
         }
 
-        if ($filter !== '' && $auth_type === User::API_USER) {
+        if ($filter !== '' && $auth_type === UserPermissionEnum::Api) {
             $filter = strtolower($filter);
             $posts = $posts->where(function ($query) use ($filter) {
                 $query

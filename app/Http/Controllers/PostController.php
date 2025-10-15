@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserPermissionEnum;
 use App\Http\Requests\Post\PostDeleteRequest;
 use App\Http\Requests\Post\PostIndexRequest;
 use App\Http\Requests\Post\PostShowRequest;
@@ -40,7 +41,7 @@ class PostController extends Controller
     {
         $auth_type = User::getAuthenticationType();
 
-        if ($auth_type === User::UNAUTHORIZED_USER) {
+        if ($auth_type === UserPermissionEnum::Unauthorized) {
             return response()->json('', Response::HTTP_UNAUTHORIZED);
         }
 

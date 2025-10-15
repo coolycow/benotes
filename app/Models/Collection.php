@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ *
+ * @property-read User $user
  */
 class Collection extends Model
 {
@@ -109,5 +111,13 @@ class Collection extends Model
     public function nested(): HasMany
     {
         return $this->children()->with('nested')->orderBy('name');
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

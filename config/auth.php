@@ -74,7 +74,7 @@ return [
         ],
         'shares' => [
             'driver' => 'eloquent',
-            'model' => App\Models\PublicShare::class,
+            'model' => App\Models\Share::class,
         ],
 
         // 'users' => [
