@@ -33,9 +33,9 @@ use Illuminate\Support\Str;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  *
- * @property-read ?string $human_created_at
- * @property-read ?string $human_updated_at
- * @property-read ?string $human_deleted_at
+ * @property-read string|null $human_created_at
+ * @property-read string|null $human_updated_at
+ * @property-read string|null $human_deleted_at
  * @property-read Collection|Tag[] $tags
  */
 class Post extends Model

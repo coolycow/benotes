@@ -38,6 +38,11 @@ export default {
         this.$store.commit('post/setPosts', [])
         this.$store.dispatch('appbar/setAppbar', {
             title: 'Search',
+            button: {
+                label: null,
+                callback: null,
+                icon: null,
+            },
             options: null,
         })
     },

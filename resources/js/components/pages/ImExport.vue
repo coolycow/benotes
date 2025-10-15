@@ -10,7 +10,7 @@
                         </span>
                     </div>
                     <div class="flex-1 relative">
-                        <span class="absolute right-0 top-0 px-1 text-xs font-medium 
+                        <span class="absolute right-0 top-0 px-1 text-xs font-medium
                             text-orange-600  border rounded border-orange-600">
                             Beta
                         </span>
@@ -25,7 +25,7 @@
                         </span>
                     </div>
                     <div class="flex-1 relative">
-                        <span class="absolute right-0 top-0 px-1 text-xs font-medium 
+                        <span class="absolute right-0 top-0 px-1 text-xs font-medium
                             text-orange-600  border rounded border-orange-600">
                             Beta
                         </span>
@@ -47,6 +47,15 @@ export default {
         ...mapState('post', ['isLoading']),
     },
     created() {
+        this.$store.dispatch('appbar/setAppbar', {
+            title: 'Import & Export',
+            button: {
+                label: null,
+                callback: null,
+                icon: null,
+            },
+            options: null,
+        })
     },
     methods: {
         goToCreatePost() {
