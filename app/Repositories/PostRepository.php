@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\PostTypeEnum;
 use App\Models\Post;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -43,10 +44,10 @@ class PostRepository extends BaseRepository implements PostRepositoryInterface
 
     /**
      * @param int $userId
-     * @param int $type
+     * @param PostTypeEnum $type
      * @return bool
      */
-    public function hasUncategorizedWithType(int $userId, int $type): bool
+    public function hasUncategorizedWithType(int $userId, PostTypeEnum $type): bool
     {
         return $this->startCondition()
             ->where('user_id', $userId)
