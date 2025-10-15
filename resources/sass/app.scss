@@ -85,7 +85,14 @@ button:focus {
 }
 
 input.input {
-    @apply border-2 border-gray-400 rounded appearance-none;
+    @apply border-1 border-gray-400 rounded appearance-none;
+    @apply outline-none w-full text-gray-700 bg-transparent;
+    padding: 0.675rem 0.75rem;
+    line-height: 1.15;
+}
+
+input-mask.input {
+    @apply border-1 border-gray-400 rounded appearance-none;
     @apply outline-none w-full text-gray-700 bg-transparent;
     padding: 0.675rem 0.75rem;
     line-height: 1.15;

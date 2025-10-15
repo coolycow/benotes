@@ -1,9 +1,25 @@
 <template>
     <div>
-        <div class="flex justify-center mt-10 h-full">
+        <header>
+            <nav class="flex px-8 py-6">
+                <div class="flex-1">
+                    <svg class="w-8 inline-block align-middle" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 32C0 14.327 14.327 0 32 0c17.673 0 32 14.327 32 32 0 17.673-14.327 32-32 32C14.327 64 0 49.673 0 32Z" fill="#F60"></path>
+                        <path d="M63.6 37.8c-3 12-7.8 15-7 14.6 0 0-3 5-13 9.4L21 42.2c19.434-34.6 13.154-3.8 24-18l18.6 13.6Z" fill="#0A0A0A" fill-opacity=".24"></path>
+                        <path fill="#F60" d="M22.4 24H42v15.6H22.4z"></path>
+                        <path d="M19 31.45h7.75v-9.3H19v9.3Zm0 10.85h7.75V33H19v9.3Zm9.3 0h7.75V33H28.3v9.3Zm9.3 0h7.75V33H37.6v9.3Zm-9.3-10.85h7.75v-9.3H28.3v9.3Zm9.3-9.3v9.3h7.75v-9.3H37.6Z" fill="#fff"></path>
+                    </svg><span class="ml-2 text-orange-500 font-medium align-middle text-lg login-header"> Benotes NEXT </span>
+                </div><div class="">
+                <a href="https://github.com/coolycow/benotes" target="_blank">
+                    <img class="w-8 inline-block" src="/GitHub-Mark-Light-64px.png" alt="GitHub">
+                </a>
+            </div>
+            </nav>
+        </header>
+        <div class="flex justify-center h-full">
             <div class="pt-2 text-center">
                 <h1 class="text-4xl md:text-5xl font-bold my-2 text-gradient">Benotes NEXT: Заметки и закладки</h1>
-                <h2 class="text-3xl md:text-4xl font-medium my-4 text-white">Сохраняйте всю свою информацию</h2>
+                <h2 class="text-3xl md:text-4xl font-normal my-4 text-white">Сохраняйте всю свою информацию</h2>
                 <h2 class="text-3xl md:text-4xl font-bold my-2 text-gradient">в одном месте.</h2>
             </div>
         </div>
@@ -14,7 +30,7 @@
                         <svg-vue class="w-16 block m-auto" icon="logo_64x64" />
                     </div>
 
-                    <div class="mb-8">
+                    <div class="mb-2">
                         <label class="label" for="email">Email</label>
                         <input
                             v-model="email"
@@ -24,10 +40,14 @@
                             placeholder="Email Address"
                             autofocus
                             required />
+                        <!-- Message after code is sent -->
+                        <div class="text-sm text-gray-600" v-if="isCodeSent">
+                            A confirmation code has been sent to your email.
+                        </div>
                     </div>
 
                     <!-- Button to send code -->
-                    <div class="mb-4" v-if="!isCodeSent">
+                    <div class="mb-2" v-if="!isCodeSent">
                         <button
                             @click.prevent="sendCode"
                             class="button w-full">
@@ -35,30 +55,28 @@
                         </button>
                     </div>
 
-                    <!-- Message after code is sent -->
-                    <div class="mb-4 text-sm text-gray-600" v-if="isCodeSent">
-                        A confirmation code has been sent to your email. Please check your inbox.
-                    </div>
-
-                    <div class="mb-8" v-if="isCodeSent">
+                    <div class="mb-2" v-if="isCodeSent">
                         <label class="label" for="code">Confirmation Code</label>
                         <input
                             v-model="code"
+                            @input="filterDigits"
                             class="input"
                             type="text"
                             name="code"
-                            placeholder="Enter code from email"
+                            placeholder="Enter code from email, example: 123456"
+                            minlength="6"
+                            maxlength="6"
                             required />
                     </div>
 
-                    <div class="mb-12">
+                    <div class="mb-2 flex items-center justify-between" v-if="isCodeSent">
+                        <button class="button w-full" type="submit">Login</button>
+                    </div>
+
+                    <div class="">
                         <p v-if="error" class="text-red-500 text-sm italic">
                             {{ error }}
                         </p>
-                    </div>
-
-                    <div class="flex items-center justify-between" v-if="isCodeSent">
-                        <button class="button w-full" type="submit">Login</button>
                     </div>
                 </form>
             </div>
@@ -67,6 +85,7 @@
 </template>
 <script>
 import axios from 'axios'
+import InputMask from 'vue-input-mask';
 export default {
     data() {
         return {
@@ -114,10 +133,12 @@ export default {
                     this.$router.push({ path: '/' })
                 })
                 .catch((error) => {
-                    if (error.response.data.length < 200) {
-                        this.error = error.response.data
-                    }
+                        this.error = error.response?.data?.message || 'Confirmation code is invalid'
                 })
+        },
+
+        filterDigits(event) {
+            this.code = event.target.value.replace(/[^0-9]/g, '').slice(0, 6)
         },
     },
 }
@@ -140,6 +161,11 @@ export default {
         rgb(17, 24, 39)
     );
 }
+.login-header {
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.75rem;
+}
 .text-gradient {
     color: transparent;
     background-clip: text;
@@ -148,5 +174,15 @@ export default {
         rgb(234, 88, 12),
         rgb(126, 34, 206)
     );
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 </style>

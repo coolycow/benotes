@@ -4,6 +4,7 @@ import VueCookie from 'vue-cookie'
 import SvgVue from 'svg-vue'
 import VueLazyload from 'vue-lazyload'
 import axios from 'axios'
+import InputMask from 'vue-input-mask';
 
 import routes from './routes.js'
 import store from './store'
@@ -39,6 +40,7 @@ Vue.use(VueCookie)
 Vue.use(VueRouter)
 Vue.use(SvgVue)
 Vue.use(VueLazyload)
+Vue.component('input-mask', InputMask)
 
 const router = new VueRouter({
     mode: 'history',

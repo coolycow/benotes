@@ -58,7 +58,7 @@ class AuthController extends Controller
         // Отправляем письмо
         Mail::to($email)->queue(new CodeMail($code, $ttl));
 
-        return response()->json(['message' => 'Code sent to your email']);
+        return response()->json(['message' => 'Code sent to your email.']);
     }
 
     /**
@@ -96,10 +96,12 @@ class AuthController extends Controller
         // 2. Получаем email из Redis по ключу вида: "auth:code:{email}"
         $storedCode = Cache::get("auth:code:{$email}");
 
-        if (!$storedCode || $storedCode !== $code) {
-            throw ValidationException::withMessages([
-                'code' => 'Invalid or expired confirmation code.',
-            ])->errorBag('login');
+        if (!$storedCode) {
+            return response()->json(['message' => 'Invalid confirmation code.'], 400);
+        }
+
+        if ($storedCode !== $code) {
+            return response()->json(['message' => 'Expired confirmation code.'], 400);
         }
 
         try {
