@@ -27,7 +27,8 @@ class UserUpdateRequest extends FormRequest
             'name' => 'string',
             'email' => 'email',
             'password_old' => 'string',
-            'password_new' => 'string|required_with:password_old'
+            'password_new' => 'string|required_with:password_old',
+            'theme' => 'string',
         ];
     }
 
@@ -61,5 +62,13 @@ class UserUpdateRequest extends FormRequest
     public function getPasswordNew(): ?string
     {
         return $this->input('password_new');
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTheme(): ?string
+    {
+        return $this->input('theme');
     }
 }

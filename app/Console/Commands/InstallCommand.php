@@ -56,6 +56,7 @@ class InstallCommand extends Command
             $this->line(PHP_EOL);
 
             // database migration
+            $this->call('migrate:fresh');
             $this->call('migrate');
             $this->line(PHP_EOL);
             $bar->advance();

@@ -23,14 +23,6 @@
                     class="input"
                     required />
             </div>
-            <!--<div class="mb-8">
-                <label class="label">Password</label>
-                <input
-                    v-model="password"
-                    placeholder="Password"
-                    type="password"
-                    class="input" />
-            </div>-->
 
             <p v-if="error" class="text-red-500 mt-4">
                 {{ error }}
@@ -64,28 +56,12 @@
                     class="input"
                     required />
             </div>
-            <!--<div v-if="isOwner" class="mb-8">
-                <label class="label">Old Password</label>
-                <input
-                    v-model="password_old"
-                    placeholder="Old Password"
-                    type="password"
-                    class="input" />
-            </div>
-            <div v-if="isOwner" class="mb-8">
-                <label class="label">New Password</label>
-                <input
-                    v-model="password_new"
-                    placeholder="New Password"
-                    type="password"
-                    class="input" />
-            </div>-->
 
             <p v-if="error" class="text-red-500 mt-4">
                 {{ error }}
             </p>
 
-            <h2 class="text-xl my-2 text-gray-800">Preferences</h2>
+            <h2 v-if="isOwner" class="text-xl my-2 text-gray-800">Preferences</h2>
 
             <div v-if="isOwner" class="mb-8">
                 <label class="label">Theme</label>
@@ -116,15 +92,13 @@ export default {
         return {
             name: null,
             email: null,
-            //password: null,
-            //password_old: null,
-            //password_new: null,
+            theme: null,
             error: null,
+            selectedTheme: null,
             themes: [
                 { id: 'default', label: 'Default' },
                 { id: 'dark', label: 'Dark' },
             ],
-            selectedTheme: localStorage.getItem('theme') || 'default',
         }
     },
     methods: {
@@ -133,8 +107,8 @@ export default {
 
             if (
                 this.name === this.authUser.name &&
-                this.email === this.authUser.email /*&&
-                (this.password_old === null || this.password_new === null)*/
+                this.email === this.authUser.email &&
+                this.theme === this.authUser.theme
             ) {
                 return
             }
@@ -143,8 +117,7 @@ export default {
             const params = {}
             if (this.name !== this.authUser.name) params.name = this.name
             if (this.email !== this.authUser.email) params.email = this.email
-            //if (this.password_old) params.password_old = this.password_old
-            //if (this.password_new) params.password_new = this.password_new
+            if (this.theme !== this.authUser.theme) params.theme = this.selectedTheme
 
             axios
                 .patch('/api/users/' + this.id, params)
@@ -169,7 +142,7 @@ export default {
                 .post('/api/users', {
                     name: this.name,
                     email: this.email,
-                    //password: this.password,
+                    theme: this.theme
                 })
                 .then((response) => {
                     this.$router.push({ path: '/users' })
@@ -202,8 +175,9 @@ export default {
             if (!this.selectedTheme || this.selectedTheme == null) {
                 return
             }
-            document.documentElement.classList.remove(localStorage.getItem('theme'))
-            localStorage.setItem('theme', this.selectedTheme)
+
+            this.theme = this.selectedTheme
+            document.documentElement.classList.remove('default', 'dark')
             document.documentElement.classList.add(this.selectedTheme)
         },
     },
@@ -230,6 +204,8 @@ export default {
                     const user = response.data.data
                     this.name = user.name
                     this.email = user.email
+                    this.theme = user.theme
+                    this.selectedTheme = user.theme
                 })
                 .catch((error) => {
                     this.error = error

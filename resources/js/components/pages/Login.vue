@@ -110,9 +110,14 @@ export default {
 
             axios
                 .post('/api/auth/send-code', { email: this.email })
-                .then(() => {
-                    this.isCodeSent = true
-                    this.error = ''
+                .then(response => {
+                    if (response.status === 201) {
+                        this.isCodeSent = true;
+                        this.error = '';
+                    } else if (response.status === 200) {
+                        this.isCodeSent = true;
+                        this.error = response.data?.message;
+                    }
                 })
                 .catch((error) => {
                     this.error = error.response?.data?.message || 'Failed to send code'

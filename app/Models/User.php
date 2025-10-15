@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ThemeEnum;
 use App\Enums\UserPermissionEnum;
 use App\Scopes\UserScope;
 use Carbon\Carbon;
@@ -19,6 +20,7 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
  * @property string $email
  * @property string $password
  * @property UserPermissionEnum $permission
+ * @property ThemeEnum $theme
  *
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -46,7 +48,8 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        'permission'
+        'permission',
+        'theme'
     ];
 
     /**
@@ -64,6 +67,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array<string, string>
      */
     protected $casts = [
+        'theme' => ThemeEnum::class,
         'permission' => UserPermissionEnum::class,
         'is_admin' => 'boolean'
     ];

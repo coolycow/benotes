@@ -29,6 +29,7 @@ import Sidebar from './Sidebar.vue'
 import Appbar from './Appbar.vue'
 import BottomSheet from './BottomSheet.vue'
 import Notification from './Notification.vue'
+import auth from '../store/modules/auth'
 
 export default {
     components: {
@@ -41,10 +42,16 @@ export default {
         ...mapState('collection', ['currentCollection']),
         ...mapState('auth', ['staticAuth']),
         ...mapState(['showSidebar']),
+        ...mapState(['auth'])
     },
     created() {
         this.isMobile()
-        document.documentElement.classList.add(localStorage.getItem('theme'))
+
+        if (this.auth.authUser && this.auth.authUser.theme) {
+            document.documentElement.classList.add(this.auth.authUser.theme)
+        } else {
+            document.documentElement.classList.add('default')
+        }
     },
     methods: {
         createNewPost() {

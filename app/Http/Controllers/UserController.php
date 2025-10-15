@@ -103,7 +103,7 @@ class UserController extends Controller
             return response()->json($response->message(), 403);
         }
 
-        $user->update($request->only('name', 'email'));
+        $user->update($request->only('name', 'email', 'theme'));
 
         if (Hash::check($request->getPasswordOld(), $user->password)) {
             $user->update([

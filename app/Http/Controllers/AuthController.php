@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
@@ -45,20 +46,28 @@ class AuthController extends Controller
     public function sendCode(SendCodeRequest $request): JsonResponse
     {
         $email = $request->getEmail();
+        $cacheKey = "auth:code:{$email}";
 
-        if (Cache::has("auth:code:{$email}")) {
-            return response()->json(['message' => 'Email already sent code'], 400);
+        if (Cache::has($cacheKey)) {
+            $prefix = config('cache.prefix');
+            $realKey = "{$prefix}:{$cacheKey}";
+
+            $remainingMinutes = intval(Redis::connection('cache')->ttl($realKey) / 60);
+
+            return response()->json([
+                'message' => "A code was sent, check your email. Try again in $remainingMinutes minutes."
+            ]);
         }
         $code = $this->confirmationCodeService->generate();
 
         $ttl = now()->addMinutes(15);
 
-        Cache::put("auth:code:{$email}", $code, $ttl);
+        Cache::put($cacheKey, $code, $ttl);
 
         // Отправляем письмо
         Mail::to($email)->queue(new CodeMail($code, $ttl));
 
-        return response()->json(['message' => 'Code sent to your email.']);
+        return response()->json(['message' => 'Code sent to your email.'], 201);
     }
 
     /**
