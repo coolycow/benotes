@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\TransactionException;
 use App\Repositories\Contracts\CollectionRepositoryInterface;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 use App\Models\Collection;
@@ -23,19 +24,32 @@ readonly class CollectionService
     }
 
     /**
-     * @param string $name
      * @param int $user_id
+     * @param string $name
      * @param int|null $parent_collection_id
      * @param int|null $icon_id
      * @return Collection
      */
-    public function store(string $name, int $user_id, ?int $parent_collection_id = null, ?int $icon_id = null): Collection
+    public function store(int $user_id, string $name, ?int $parent_collection_id = null, ?int $icon_id = null): Collection
     {
         return Collection::query()->create([
-            'name' => $name,
             'user_id' => $user_id,
+            'name' => $name,
             'parent_id' => $parent_collection_id,
             'icon_id' => $icon_id
+        ]);
+    }
+
+    /**
+     * @param int $user_id
+     * @param string $name
+     * @return Collection|Model
+     */
+    public function firstOrCreate(int $user_id, string $name): Collection|Model
+    {
+        return Collection::query()->firstOrCreate([
+            'user_id' => $user_id,
+            'name' => $name,
         ]);
     }
 

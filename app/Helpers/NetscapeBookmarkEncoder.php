@@ -4,26 +4,31 @@ namespace App\Helpers;
 
 use App\Models\Collection;
 use App\Models\Post;
-use App\Services\PostService;
 use Illuminate\Support\Facades\Cache;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class NetscapeBookmarkEncoder
 {
-    private PostService $postService;
-    private $user_id;
+    private int $user_id;
 
     public function __construct(int $user_id)
     {
-        $this->postService = new PostService();
         $this->user_id = $user_id;
     }
 
-    public function encodeToFile($filepath)
+    /**
+     * @param $filepath
+     * @return void
+     */
+    public function encodeToFile($filepath): void
     {
         $content = $this->serialize();
         file_put_contents($filepath, $content);
     }
 
+    /**
+     * @return string
+     */
     private function serialize(): string
     {
         $content = "<!DOCTYPE NETSCAPE-Bookmark-file-1>\n" .
@@ -34,14 +39,16 @@ class NetscapeBookmarkEncoder
             "\n" .
             "<DL><p>\n";
 
-        $collections = Collection::where('user_id', $this->user_id)
+        $collections = Collection::query()
+            ->where('user_id', $this->user_id)
             ->whereNull('parent_id')
             ->with('nested')
             ->orderBy('name')
             ->get();
 
         if (
-            Post::where('user_id', $this->user_id)
+            Post::query()
+                ->where('user_id', $this->user_id)
                 ->whereNull('collection_id')
                 ->where('type', Post::POST_TYPE_LINK)
                 ->exists()
@@ -51,16 +58,22 @@ class NetscapeBookmarkEncoder
 
         $content .= $this->collectionsRecursive($collections, 0);
 
-        return $content .= "</DL><p>";
+        return $content . "</DL><p>";
     }
 
-    private function collectionsRecursive($collections, $level): string
+    /**
+     * @param \Illuminate\Database\Eloquent\Collection $collections
+     * @param int $level
+     * @return string
+     */
+    private function collectionsRecursive(\Illuminate\Database\Eloquent\Collection $collections, int $level): string
     {
-        $content = "";
+        $content = '';
         $level++;
-        foreach ($collections as $collection) {
 
-            $dates = Post::select('created_at', 'updated_at')
+        foreach ($collections as $collection) {
+            $dates = Post::query()
+                ->select('created_at', 'updated_at')
                 ->where('collection_id', $collection->id)
                 ->latest()
                 ->first();
@@ -94,10 +107,11 @@ class NetscapeBookmarkEncoder
         return $content;
     }
 
-    private function getPosts(int $collectionId = null, int $level): string
+    private function getPosts(?int $collectionId, int $level): string
     {
         $content = "";
-        $posts = Post::where('collection_id', $collectionId)
+        $posts = Post::query()
+            ->where('collection_id', $collectionId)
             ->where('type', Post::POST_TYPE_LINK)
             ->with('tags')
             ->orderBy('order', 'desc')
@@ -122,25 +136,35 @@ class NetscapeBookmarkEncoder
         return $content;
     }
 
-    private function tabs($level): string
+    /**
+     * @param int $level
+     * @return string
+     */
+    private function tabs(int $level): string
     {
         return str_repeat("\t", $level);
     }
 
+    /**
+     * @param string $baseUrl
+     * @return string
+     * @throws InvalidArgumentException
+     */
     private function icon(string $baseUrl): string
     {
         $cacheKey = 'icon:' . $baseUrl;
+
         if (Cache::has($cacheKey)) {
             $icon = Cache::get($cacheKey);
         } else {
-            $url = 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=' . $baseUrl . '&size=16';
+            $url = 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url='
+                . $baseUrl
+                . '&size=16';
             $icon = @file_get_contents($url);
-            Cache::put($cacheKey, $icon ? $icon : null);
+            Cache::put($cacheKey, $icon ?: null);
         }
-        if (!$icon || empty($icon) || $icon === '') {
-            return '';
-        }
-        return 'data:image/png;base64,' . base64_encode($icon);
+
+        return empty($icon) ? '' : 'data:image/png;base64,' . base64_encode($icon);
     }
 
 }

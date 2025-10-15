@@ -2,10 +2,14 @@
 
 namespace App\Helpers;
 
+use App\Exceptions\TransactionException;
 use App\Models\Collection;
+use App\Services\CollectionService;
 use App\Services\PostService;
 use App\Services\TagService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Throwable;
 
 /*
  * This file is heavily inspired by:
@@ -38,22 +42,24 @@ use Illuminate\Support\Str;
 
 class NetscapeBookmarkDecoder
 {
-    protected $items;
+    protected array $items;
     private PostService $postService;
     private TagService $tagService;
-    private $userId;
+    private CollectionService $collectionService;
+    private int $userId;
 
-    const TRUE_PATTERN = 'y|yes|on|checked|ok|1|true|array|\+|okay|yes|t|one';
-    const FALSE_PATTERN = 'n|no|off|empty|null|false|nil|0|-|exit|die|neg|f|zero|void';
+    const string TRUE_PATTERN = 'y|yes|on|checked|ok|1|true|array|\+|okay|yes|t|one';
+    const string FALSE_PATTERN = 'n|no|off|empty|null|false|nil|0|-|exit|die|neg|f|zero|void';
 
     /**
      *
-     * @param $userId
+     * @param int $userId
      */
     public function __construct(int $userId)
     {
-        $this->postService = new PostService();
-        $this->tagService = new TagService();
+        $this->postService = app(PostService::class);
+        $this->tagService = app(TagService::class);
+        $this->collectionService = app(CollectionService::class);
         $this->userId = $userId;
     }
 
@@ -64,6 +70,7 @@ class NetscapeBookmarkDecoder
      * @param int $collectionId
      *
      * @return array An associative array containing parsed links
+     * @throws TransactionException
      */
     public function parseFile(string $filename, int $collectionId): array
     {
@@ -75,6 +82,7 @@ class NetscapeBookmarkDecoder
      * @param string $bookmarkString String containing Netscape bookmarks
      *
      * @return array An associative array containing parsed links
+     * @throws TransactionException
      */
     public function parseString(string $bookmarkString, int $collectionId): array
     {
@@ -87,7 +95,7 @@ class NetscapeBookmarkDecoder
             if (preg_match('/^<h\d.*>(.*)<\/h\d>/i', $line, $m1)) {
                 // heading matched
                 $collection = $this->createCollection($m1[1], $collectionId);
-                array_push($parentsIds, $collection->parent_id);
+                $parentsIds[] = $collection->parent_id;
                 $collectionId = $collection->id;
                 continue;
             } else if (preg_match('/^<\/DL>/i', $line)) {
@@ -169,7 +177,7 @@ class NetscapeBookmarkDecoder
      * @return int Unix timestamp corresponding to a successfully parsed date,
      *             else current date and time
      */
-    public static function parseDate($date): int
+    public static function parseDate(string $date): int
     {
         if (strtotime('@' . $date)) {
             // Unix timestamp
@@ -185,10 +193,10 @@ class NetscapeBookmarkDecoder
     /**
      * Parses the value of a supposedly boolean attribute
      *
-     * @param string $value   Attribute value to evaluate
+     * @param mixed $value   Attribute value to evaluate
      *
      */
-    public function parseBoolean($value): bool
+    public function parseBoolean(mixed $value): bool
     {
         if (!$value) {
             return false;
@@ -200,9 +208,11 @@ class NetscapeBookmarkDecoder
         if (preg_match("/^(" . self::TRUE_PATTERN . ")$/i", $value)) {
             return true;
         }
+
         if (preg_match("/^(" . self::FALSE_PATTERN . ")$/i", $value)) {
             return false;
         }
+
         return false;
     }
 
@@ -219,7 +229,7 @@ class NetscapeBookmarkDecoder
      * @return string Sanitized bookmark string
      */
 
-    public static function sanitizeString($bookmarkString): string
+    public static function sanitizeString(string $bookmarkString): string
     {
         $sanitized = $bookmarkString;
 
@@ -251,42 +261,60 @@ class NetscapeBookmarkDecoder
         // concatenate all information related to the same entry on the same line
         // e.g. <A HREF="...">My Link</A><DD>List<br>- item1<br>- item2
         $sanitized = preg_replace('@\n<br>@mis', "<br>", $sanitized);
-        $sanitized = preg_replace('@\n<DD@i', '<DD', $sanitized);
-
-        return $sanitized;
+        return preg_replace('@\n<DD@i', '<DD', $sanitized);
     }
 
-    private function createCollection($name, $parent_id): Collection
+    /**
+     * @param string $name
+     * @param int|null $parent_id
+     * @return Collection
+     */
+    private function createCollection(string $name, ?int $parent_id): Collection
     {
-        $collection = Collection::create([
-            'name'      => $name,
-            'parent_id' => $parent_id,
-            'user_id'   => $this->userId,
-        ]);
-        return $collection;
+        return $this->collectionService->store($this->userId, $name, $parent_id);
     }
 
-    private function createPost($title, $collectionId, $url, $description, $tags = null)
+    /**
+     * @param string $title
+     * @param int|null $collectionId
+     * @param string|null $url
+     * @param string|null $description
+     * @param array|null $tags
+     * @return void
+     * @throws TransactionException
+     */
+    private function createPost(string $title, ?int $collectionId, ?string $url, ?string $description, array $tags = null): void
     {
         $this->postService->store(
-            $title,
+            $this->userId,
             $url,
+            $title,
             $collectionId,
             $description,
             $this->createTags($tags),
-            $this->userId,
         );
     }
 
-    private function createTags(array $tagNames): array|null
+    /**
+     * @param array $tagNames
+     * @return array|null
+     * @throws TransactionException
+     */
+    private function createTags(array $tagNames): ?array
     {
         if (count($tagNames) === 0) {
             return null;
         }
-        return array_map(function ($tagName) {
-            $tag = $this->tagService->create($tagName, $this->userId);
-            return $tag->id;
-        }, $tagNames);
-    }
 
+        try {
+            return DB::transaction(function () use ($tagNames) {
+                return array_map(function ($tagName) {
+                    $tag = $this->tagService->create($tagName, $this->userId);
+                    return $tag->id;
+                }, $tagNames);
+            });
+        } catch (Throwable $e) {
+            throw TransactionException::error($e);
+        }
+    }
 }

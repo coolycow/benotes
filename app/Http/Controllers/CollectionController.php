@@ -73,8 +73,8 @@ class CollectionController extends Controller
         }
 
         $collection = $this->service->store(
-            $request->getName(),
             Auth::id(),
+            $request->getName(),
             $parent_id,
             $request->getIconId()
         );

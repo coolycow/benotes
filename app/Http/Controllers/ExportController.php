@@ -3,12 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NetscapeBookmarkEncoder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Spatie\TemporaryDirectory\TemporaryDirectory;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class ExportController extends Controller
 {
-    public function index()
+    /**
+     * @return JsonResponse|BinaryFileResponse
+     */
+    public function index(): JsonResponse|BinaryFileResponse
     {
 
         if (!is_writable(config('benotes.temporary_directory'))) {
@@ -22,10 +28,10 @@ class ExportController extends Controller
             ->empty();
 
         $path = $tempDirectory->path('export.html');
-        $encoder = new NetscapeBookmarkEncoder(Auth()->user()->id);
+        $encoder = new NetscapeBookmarkEncoder(Auth::id());
         $encoder->encodeToFile($path);
 
-        return response()->download($path)->deleteFileAfterSend(true);
+        return response()->download($path)->deleteFileAfterSend();
     }
 
 }
