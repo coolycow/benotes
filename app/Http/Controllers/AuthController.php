@@ -9,6 +9,7 @@ use App\Http\Requests\SendCodeRequest;
 use App\Http\Requests\SendResetRequest;
 use App\Mail\CodeMail;
 use App\Models\User;
+use App\Services\ConfirmationCodeService;
 use App\Services\PostService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -30,6 +31,7 @@ class AuthController extends Controller
 {
     public function __construct(
         protected PostService $postService,
+        protected ConfirmationCodeService $confirmationCodeService
     )
     {
         //
@@ -47,11 +49,8 @@ class AuthController extends Controller
         if (Cache::has("auth:code:{$email}")) {
             return response()->json(['message' => 'Email already sent code'], 400);
         }
+        $code = $this->confirmationCodeService->generate();
 
-        // Генерируем случайный 6-значный код
-        $code = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
-
-        // Сохраняем его в Redis на 15 минут
         Cache::put("auth:code:{$email}", $code, now()->addMinutes(15));
 
         // Отправляем письмо
@@ -182,7 +181,6 @@ class AuthController extends Controller
     public function logout(): JsonResponse
     {
         Auth::logout();
-        // Auth::user()->tokens()->where('id', 'device_name')->delete();
         return response()->json('', 204);
     }
 
