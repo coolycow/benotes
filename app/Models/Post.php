@@ -33,6 +33,9 @@ use Illuminate\Support\Str;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  *
+ * @property-read ?string $human_created_at
+ * @property-read ?string $human_updated_at
+ * @property-read ?string $human_deleted_at
  * @property-read Collection|Tag[] $tags
  */
 class Post extends Model
@@ -103,6 +106,12 @@ class Post extends Model
         'deleted_at'
     ];
 
+    protected $appends = [
+        'human_created_at',
+        'human_updated_at',
+        'human_deleted_at',
+    ];
+
     /**
      * @param $value
      * @return string
@@ -154,6 +163,30 @@ class Post extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getHumanCreatedAtAttribute(): ?string
+    {
+        return $this->created_at?->diffForHumans();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getHumanUpdatedAtAttribute(): ?string
+    {
+        return $this->updated_at?->diffForHumans();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getHumanDeletedAtAttribute(): ?string
+    {
+        return $this->deleted_at?->diffForHumans();
     }
 
     /**

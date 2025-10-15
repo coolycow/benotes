@@ -113,7 +113,7 @@ export default {
     .card {
         @apply block;
         width: 20.5rem;
-        height: 21.5rem;
+        height: 22.5rem;
     }
 }
 

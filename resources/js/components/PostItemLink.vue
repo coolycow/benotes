@@ -20,6 +20,9 @@
                 <div class="font-bold text-xl mb-2 truncate" :title="post.title">
                     {{ post.title }}
                 </div>
+                <PostItemUpdatedAt
+                    :created_at="post.created_at"
+                    :updated_at="post.updated_at" />
                 <p
                     v-if="post.description !== null"
                     class="text-gray-700 text-base overflow-hidden description">
@@ -74,8 +77,10 @@
 import { restorePost } from './../api/post.js'
 import { getCollectionName } from './../api/collection.js'
 import PostItemTags from './PostItemTags.vue'
+import PostItemUpdatedAt from './PostItemUpdatedAt.vue'
 export default {
     components: {
+        PostItemUpdatedAt,
         PostItemTags,
     },
     props: ['post', 'showContextMenu', 'permission', 'restore'],
