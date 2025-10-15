@@ -51,10 +51,12 @@ class AuthController extends Controller
         }
         $code = $this->confirmationCodeService->generate();
 
-        Cache::put("auth:code:{$email}", $code, now()->addMinutes(15));
+        $ttl = now()->addMinutes(15);
+
+        Cache::put("auth:code:{$email}", $code, $ttl);
 
         // Отправляем письмо
-        Mail::to($email)->queue(new CodeMail($code));
+        Mail::to($email)->queue(new CodeMail($code, $ttl));
 
         return response()->json(['message' => 'Code sent to your email']);
     }

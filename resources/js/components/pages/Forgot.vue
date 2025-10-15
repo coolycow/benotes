@@ -6,7 +6,7 @@
                     <svg-vue class="w-16 block m-auto" icon="logo_64x64" />
                     <span
                         class="block my-2 text-2xl text-orange-600 font-semibold text-center align-middle">
-                        Benotes
+                        Benotes NEXT
                     </span>
                 </div>
 

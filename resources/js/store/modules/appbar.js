@@ -26,7 +26,7 @@ export default {
         setTitle(state, title) {
             state.title = title
             if (title) {
-                document.title = 'Benotes - ' + title
+                document.title = 'Benotes NEXT - ' + title
             }
         },
         setOptions(state, options) {
@@ -37,9 +37,9 @@ export default {
         setAppbar(context, appbar) {
             context.commit('setAppbar', appbar)
             if (appbar && appbar.title) {
-                document.title = 'Benotes - ' + appbar.title
+                document.title = 'Benotes NEXT - ' + appbar.title
             } else if (appbar.title) {
-                document.title = 'Benotes'
+                document.title = 'Benotes NEXT'
             }
         },
         setOptions(context, options) {

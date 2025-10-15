@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -16,7 +17,7 @@ class CodeMail extends Mailable
      *
      * @return void
      */
-    public function __construct(public string $code)
+    public function __construct(public string $code, public Carbon $ttl)
     {
         $this->queue = 'mail';
     }
@@ -28,6 +29,8 @@ class CodeMail extends Mailable
      */
     public function build(): CodeMail
     {
-        return $this->markdown('mail.code')->subject('Confirmation code');
+        return $this
+            ->markdown('mail.code')
+            ->subject('Confirmation code');
     }
 }

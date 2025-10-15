@@ -1,4 +1,4 @@
-APP_NAME=Benotes
+APP_NAME=Benotes NEXT
 APP_ENV=local
 APP_DEBUG=false
 APP_URL={{ $app_url }}
