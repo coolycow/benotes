@@ -1,6 +1,34 @@
+# Benotes NEXT
+Изменённая версия Benotes.
+
+## Изменения:
+- Обновлены все пакеты;
+- Доработана типизация (PHP 8.3);
+- Доработаны карточки постов
+- Добавлена регистрация по Email и коду;
+- Удалён вход по паролю;
+- Добавлен Redis для очередей и кэширования;
+- Добавлен Horizon для мониторинга очередей;
+- Множество мелких изменений.
+
+## Установка
+Для использования лучше всего использовать [Benotes Docker](https://github.com/coolycow/benotes-docker)
+
+### Что используется
+- NGINX Unit;
+- MariaDB;
+- Redis;
+- Horizon.
+
+### После установки
+Требуется доработать файл `.env`:
+- Проверить настройки базы данных;
+- Изменить настройки почты;
+- Добавить логин и пароль для Horizon.
+
 <p align="center">
     <img width="110" alt="Benotes Logo"
-        src="https://raw.githubusercontent.com/fr0tt/benotes/master/public/logo_144x144.png"/>
+        src="https://raw.githubusercontent.com/coolycow/benotes/master/public/apple-touch-icon.png"/>
 </p>
 
 <h1 align="center">Benotes</h1>
