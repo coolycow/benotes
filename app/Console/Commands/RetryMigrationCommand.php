@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
@@ -36,21 +37,19 @@ class RetryMigrationCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return int
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
-
         $this->info('Migrate database...');
 
         for ($i = 0; $i < 3; $i++) {
-
             try {
                 DB::connection()->getPDO();
                 Artisan::call('migrate --force');
                 $this->info('Database migration completed.');
-                return 0;
-            } catch(\Exception $e) {
+                return;
+            } catch(Exception $e) {
                 sleep(5 + $i);
                 $this->info('Database migration failed. Try again...');
             }
@@ -60,13 +59,12 @@ class RetryMigrationCommand extends Command
             DB::connection()->getPDO();
             Artisan::call('migrate --force');
             $this->info('Database migration completed.');
-            return 0;
-        } catch(\Exception $e) {
+            return;
+        } catch(Exception $e) {
             $this->error('Database migration failed.');
             Log::error('Database migration failed.');
         }
 
-
-        return 0;
+        $this->info('completed.');
     }
 }

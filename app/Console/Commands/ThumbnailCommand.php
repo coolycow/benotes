@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use App\Services\PostService;
+use Exception;
 use Illuminate\Console\Command;
 
 class ThumbnailCommand extends Command
@@ -37,12 +38,13 @@ class ThumbnailCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return int
+     * @return void
+     * @throws Exception
      */
-    public function handle()
+    public function handle(): void
     {
-
         $post_id = $this->argument('id');
+
         if (empty($post_id)) {
             $this->info('What post would you like to "improve" ?');
             $post_id = $this->ask('Please specify a post id or type all');
@@ -53,27 +55,33 @@ class ThumbnailCommand extends Command
                 ->where('type', Post::POST_TYPE_LINK)
                 ->whereNull('image_path');
             $this->info($posts->count() . ' potential posts found. This could take several minutes.');
+
             foreach ($posts->get() as $post) {
                 $this->info('Process post ' . $post->id . '...');
                 $this->createThumbnail($post);
             }
-            return 0;
         } else {
-            $post = Post::find(intval($post_id));
+            /**
+             * @var Post $post
+             */
+            $post = Post::query()->find(intval($post_id));
             $this->createThumbnail($post);
         }
-
-        return 0;
     }
 
-    private function createThumbnail(Post $post)
+    /**
+     * @param Post $post
+     * @return void
+     * @throws Exception
+     */
+    private function createThumbnail(Post $post): void
     {
         if ($post->type === Post::POST_TYPE_TEXT) {
             $this->error('Post is not a link and therefore has no thumbnail');
             return;
         }
 
-        if (@get_headers($post->url) == false) {
+        if (!@get_headers($post->url)) {
             $this->error('Post has no existing link');
             return;
         }
@@ -81,6 +89,7 @@ class ThumbnailCommand extends Command
         $filename = $this->service->generateThumbnailFilename($post->url, $post->id);
         $path = $this->service->getThumbnailPath($filename);
         $this->service->crawlWithChrome($filename, $path, $post->url, $post->id);
+
         if (file_exists($path)) {
             $post->image_path = $filename;
             $post->save();

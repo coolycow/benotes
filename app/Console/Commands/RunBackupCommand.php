@@ -2,16 +2,17 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\ConfigurationUrlParser;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Spatie\DbDumper\Databases\MySql;
 use Spatie\DbDumper\Databases\Sqlite;
 use Spatie\DbDumper\Databases\PostgreSql;
 use Spatie\TemporaryDirectory\TemporaryDirectory;
+use ZipArchive;
 
 class RunBackupCommand extends Command
 {
@@ -35,10 +36,10 @@ class RunBackupCommand extends Command
      * Execute the console command.
      *
      * @return void
+     * @throws Exception
      */
-    public function handle()
+    public function handle(): void
     {
-
         $tempDirPath = config('benotes.temporary_directory');
 
         $tempDirectory = (new TemporaryDirectory($tempDirPath))
@@ -52,16 +53,15 @@ class RunBackupCommand extends Command
         $pathToDbDump = $tempDirectory->path($dbDumpFilename);
 
         try {
-
             $dumper->dumpToFile($pathToDbDump);
 
             $this->info('Zipping files and directories...');
 
             $backupFilename = date('Y_m_d_Hi') . '_backup.zip';
             $pathToZip = $tempDirectory->path($backupFilename);
-            $zip = new \ZipArchive;
+            $zip = new ZipArchive;
 
-            if (true === ($zip->open($pathToZip, \ZipArchive::CREATE | \ZipArchive::OVERWRITE))) {
+            if (true === ($zip->open($pathToZip, ZipArchive::CREATE | ZipArchive::OVERWRITE))) {
                 foreach (Storage::allFiles() as $file) {
                     if (!Str::endsWith($file, '.gitignore')) {
                         $zip->addFile(Storage::path($file), $file);
@@ -82,7 +82,7 @@ class RunBackupCommand extends Command
             Storage::disk(config('benotes.backup_disk'))
                 ->putFileAs('', $pathToZip, $backupFilename);
 
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->error('Backup attempt failed.');
             $this->warn($exception->getMessage());
             $tempDirectory->delete();
@@ -92,18 +92,24 @@ class RunBackupCommand extends Command
 
     }
 
-    private function dumpDatabase()
+    /**
+     * @return MySql|PostgreSql|Sqlite
+     * @throws Exception
+     */
+    private function dumpDatabase(): MySql|PostgreSql|Sqlite
     {
         $dbConnection = config('database.default');
 
         $parser = new ConfigurationUrlParser();
         try {
             $dbConfig = $parser->parseConfiguration(config("database.connections.{$dbConnection}"));
-        } catch (\Exception $e) {
-            throw new \Exception('Unsupported driver for ' . $dbConnection);
+        } catch (Exception $e) {
+            throw new Exception('Unsupported driver for ' . $dbConnection);
         }
 
         $driver = strtolower(config("database.connections.{$dbConnection}.driver"));
+
+        $dumper = null;
 
         if ($driver === 'mysql' || $driver === 'mariadb') {
             $dumper = new MySql();
@@ -118,7 +124,7 @@ class RunBackupCommand extends Command
         }
 
         if ($driver === 'sqlite') {
-            // put here, just in case someone might use sqlite 
+            // put here, just in case someone might use sqlite
             // and provides a database url
             return $dumper->setDbName($dbConfig['database']);
         }

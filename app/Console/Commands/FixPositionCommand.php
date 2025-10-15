@@ -27,14 +27,15 @@ class FixPositionCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
+        $users = User::query()->select('id', 'name')->get();
 
-        $users = User::select('id', 'name')->get();
         foreach ($users as $user) {
             $user_id = $user->id;
+
             $collections = Collection::select('id', 'name')
                 ->where('user_id', $user_id)
                 ->get();
@@ -42,14 +43,17 @@ class FixPositionCommand extends Command
             $uncategorized->id = null;
             $uncategorized->name = 'Uncategorized';
             $collections->push($uncategorized);
+
             foreach ($collections as $collection) {
                 echo '------- ' . $collection->name . ' by ' . $user->name . ':' . ' -------' . PHP_EOL;
                 $collection_id = $collection->id;
-                $posts = Post::where('user_id', $user_id)
+                $posts = Post::query()
+                    ->where('user_id', $user_id)
                     ->where('collection_id', $collection_id)
                     ->where('deleted_at', null)
                     ->orderBy('order')
                     ->get();
+
                 for ($i = 0; $i < $posts->count(); $i++) {
                     $post = $posts[$i];
                     $post->order = $i + 1;
