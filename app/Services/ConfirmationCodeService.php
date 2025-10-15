@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Random\RandomException;
 
-class ConfirmationCodeService
+readonly class ConfirmationCodeService
 {
     /**
      * @param int $min

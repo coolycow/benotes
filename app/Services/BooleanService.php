@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-class BooleanService
+readonly class BooleanService
 {
     /**
      * @param $value

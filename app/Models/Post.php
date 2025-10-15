@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PostTypeEnum;
 use App\Scopes\PostScope;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,7 @@ use Illuminate\Support\Str;
  * @property int $user_id
  * @property int|null $collection_id
  *
- * @property int $type
+ * @property PostTypeEnum $type
  * @property string $content
  *
  * @property string|null $url
@@ -45,10 +46,6 @@ class Post extends Model
 {
     use SoftDeletes, HasFactory;
 
-    const int POST_TYPE_TEXT = 1;
-    const int POST_TYPE_LINK = 2;
-
-
     /**
      * @return void
      */
@@ -68,7 +65,7 @@ class Post extends Model
         'user_id' => 'integer',
         'order' => 'integer',
         'content' => 'string',
-        'type' => 'string',
+        'type' => PostTypeEnum::class,
         'url' => 'string',
         'base_url' => 'string',
         'title' => 'string',
@@ -114,24 +111,6 @@ class Post extends Model
         'human_updated_at',
         'human_deleted_at',
     ];
-
-    /**
-     * @param $value
-     * @return string
-     */
-    public function getTypeAttribute($value): string
-    {
-        return intval($value) === self::POST_TYPE_LINK ? 'link' : 'text';
-    }
-
-    /**
-     * @param $value
-     * @return int
-     */
-    public static function getTypeFromString($value): int
-    {
-        return $value === 'text' ? self::POST_TYPE_TEXT : self::POST_TYPE_LINK;
-    }
 
     /**
      * @param $value
@@ -198,55 +177,5 @@ class Post extends Model
     public function getHumanDeletedAtAttribute(): ?string
     {
         return $this->deleted_at?->diffForHumans();
-    }
-
-    /**
-     * @param $user_id
-     * @param $collection_id
-     * @return void
-     */
-    public static function seedIntroData($user_id, $collection_id = null): void
-    {
-        $i = 1;
-
-        Post::create([
-            'title'         => 'GitHub - fr0tt/benotes: An open source self hosted web app for your notes and bookmarks.',
-            'content'       => 'https://github.com/fr0tt/benotes',
-            'type'          => self::POST_TYPE_LINK,
-            'url'           => 'https://github.com/fr0tt/benotes',
-            'color'         => '#1e2327',
-            'image_path'    => 'https://opengraph.githubassets.com/9c1b74a8cc5eeee5c5c9f62701c42e1356595422d840d2e209bceb836deb5ffb/fr0tt/benotes',
-            'base_url'      => 'https://github.com',
-            'collection_id' => $collection_id,
-            'user_id'       => $user_id,
-            'order'         => $i++,
-        ]);
-
-        Post::create([
-            'title'         => 'Also...',
-            'content'       => '<p>you can save (or paste, if your browser allows it) bookmarks ! ➡️</p>',
-            'type'          => self::POST_TYPE_TEXT,
-            'description'   => null,
-            'collection_id' => $collection_id,
-            'user_id'       => $user_id,
-            'order'         => $i++
-        ]);
-
-        Post::create([
-            'title'         => 'Text Post 📝',
-            'content'       => '<p>This post demonstrates different features of Benotes. <br>' .
-            'You can write <strong>bold</strong>, ' .
-            '<em>italic</em> or <strong>combine <em>them</em></strong><em>.</em></p>' .
-            '<blockquote><p>Blockquotes are also a thing</p></blockquote>' .
-            '<hr> <p>You can also use Markdown in order to type faster. <br>' .
-            'If you are not familiar with the syntax have a look at</p>' .
-            '<unfurling-link href="https://www.markdownguide.org/cheat-sheet/" ' .
-            'data-title="Markdown Cheat Sheet | Markdown Guide"></unfurling-link>',
-            'type'          => self::POST_TYPE_TEXT,
-            'description'   => null,
-            'collection_id' => $collection_id,
-            'user_id'       => $user_id,
-            'order'         => $i++
-        ]);
     }
 }

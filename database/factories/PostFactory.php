@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PostTypeEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 use App\Models\Post;
@@ -14,16 +15,18 @@ class PostFactory extends Factory
      *
      * @return array
      */
-    public function definition()
+    public function definition(): array
     {
         return [
             'id' => $this->faker->randomNumber(),
             'title' => $this->faker->title(),
             'content' => $this->faker->sentence(),
-            'collection_id' => (Collection::count() > 0) ? Collection::first()->id : null,
-            'type' => Post::POST_TYPE_TEXT,
-            'user_id' => User::first()->id,
-            'order' => Post::where('collection_id', null)->count()
+            'collection_id' => Collection::query()->count() > 0
+                ? Collection::query()->first()->getKey()
+                : null,
+            'type' => PostTypeEnum::Text,
+            'user_id' => User::query()->first()->getKey(),
+            'order' => Post::query()->where('collection_id', null)->count()
         ];
     }
 }

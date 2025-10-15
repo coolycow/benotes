@@ -2,18 +2,26 @@
 
 namespace App\Helpers;
 
+use App\Enums\PostTypeEnum;
 use App\Models\Collection;
 use App\Models\Post;
+use App\Repositories\Contracts\CollectionRepositoryInterface;
+use App\Repositories\Contracts\PostRepositoryInterface;
 use Illuminate\Support\Facades\Cache;
 use Psr\SimpleCache\InvalidArgumentException;
 
-class NetscapeBookmarkEncoder
+readonly class NetscapeBookmarkEncoder
 {
-    private int $user_id;
+    private PostRepositoryInterface $postRepository;
+    private CollectionRepositoryInterface $collectionRepository;
 
-    public function __construct(int $user_id)
+    /**
+     * @param int $user_id
+     */
+    public function __construct(private int $user_id)
     {
-        $this->user_id = $user_id;
+        $this->postRepository = app(PostRepositoryInterface::class);
+        $this->collectionRepository = app(CollectionRepositoryInterface::class);
     }
 
     /**
@@ -39,26 +47,13 @@ class NetscapeBookmarkEncoder
             "\n" .
             "<DL><p>\n";
 
-        $collections = Collection::query()
-            ->where('user_id', $this->user_id)
-            ->whereNull('parent_id')
-            ->with('nested')
-            ->orderBy('name')
-            ->get();
+        $collections = $this->collectionRepository->getNested($this->user_id);
 
-        if (
-            Post::query()
-                ->where('user_id', $this->user_id)
-                ->whereNull('collection_id')
-                ->where('type', Post::POST_TYPE_LINK)
-                ->exists()
-        ) {
+        if ($this->postRepository->hasUncategorizedWithType($this->user_id, PostTypeEnum::Link)) {
             $collections->prepend((object) ['name' => 'Uncategorized', 'id' => null]);
         }
 
-        $content .= $this->collectionsRecursive($collections, 0);
-
-        return $content . "</DL><p>";
+        return $content . $this->collectionsRecursive($collections, 0) . "</DL><p>";
     }
 
     /**
@@ -71,6 +66,9 @@ class NetscapeBookmarkEncoder
         $content = '';
         $level++;
 
+        /**
+         * @var Collection $collection
+         */
         foreach ($collections as $collection) {
             $dates = Post::query()
                 ->select('created_at', 'updated_at')
@@ -112,7 +110,7 @@ class NetscapeBookmarkEncoder
         $content = "";
         $posts = Post::query()
             ->where('collection_id', $collectionId)
-            ->where('type', Post::POST_TYPE_LINK)
+            ->where('type', PostTypeEnum::Link)
             ->with('tags')
             ->orderBy('order', 'desc')
             ->get();

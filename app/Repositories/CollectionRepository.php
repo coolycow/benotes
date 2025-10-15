@@ -43,9 +43,10 @@ class CollectionRepository extends BaseRepository implements CollectionRepositor
      */
     public function getNested(int $userId): \Illuminate\Database\Eloquent\Collection
     {
-        return $this->startCondition()->with('nested')
+        return $this->startCondition()
             ->where('user_id', $userId)
             ->whereNull('parent_id')
+            ->with('nested')
             ->orderBy('name')
             ->get();
     }

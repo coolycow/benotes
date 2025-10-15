@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PostTypeEnum;
 use App\Enums\UserPermissionEnum;
 use App\Http\Requests\Post\PostDeleteRequest;
 use App\Http\Requests\Post\PostIndexRequest;
@@ -253,7 +254,7 @@ class PostController extends Controller
             }
         }
 
-        if ($info['type'] === Post::POST_TYPE_LINK && isset($validatedData['content'])) {
+        if ($info['type'] === PostTypeEnum::Link && isset($validatedData['content'])) {
             if (empty($post->image_path) || $validatedData['content'] !== $post->content)
                 $this->service->saveImage($info['image_path'], $post);
         }

@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $deleted_at
  *
  * @property-read User $user
+ * @property-read \Illuminate\Database\Eloquent\Collection|Collection[] $nested
  */
 class Collection extends Model
 {

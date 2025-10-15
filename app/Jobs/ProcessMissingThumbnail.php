@@ -2,8 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Enums\PostTypeEnum;
 use App\Models\Post;
 use App\Services\PostService;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,25 +17,26 @@ class ProcessMissingThumbnail implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private $post, $service;
-
     /**
      * The number of times the job may be attempted.
      *
      * @var int
      */
-    public $tries = 3;
+    public int $tries = 3;
 
     /**
      * Create a new job instance.
      *
-     * @param  App\Models\Post  $post
-     * @return void
+     * @param Post $post
+     * @param PostService $service
      */
-    public function __construct(Post $post)
+    public function __construct(
+        private Post $post,
+        private PostService $service
+    )
     {
         $this->post = $post->withoutRelations();
-        $this->service = new PostService();
+        $this->service = app(PostService::class);
     }
 
     /**
@@ -41,7 +44,7 @@ class ProcessMissingThumbnail implements ShouldQueue
      *
      * @return array
      */
-    public function middleware()
+    public function middleware(): array
     {
         return [(new WithoutOverlapping($this->post->id))->releaseAfter(60)];
     }
@@ -50,10 +53,11 @@ class ProcessMissingThumbnail implements ShouldQueue
      * Execute the job.
      *
      * @return void
+     * @throws Exception
      */
-    public function handle()
+    public function handle(): void
     {
-        if ($this->post->type === Post::POST_TYPE_TEXT) {
+        if ($this->post->type === PostTypeEnum::Text) {
             return;
         }
         if (!empty($this->post->image_path)) {

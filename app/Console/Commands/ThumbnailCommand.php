@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\PostTypeEnum;
 use App\Models\Post;
 use App\Services\PostService;
 use Exception;
@@ -51,8 +52,8 @@ class ThumbnailCommand extends Command
         }
 
         if ($post_id === 'all') {
-            $posts = Post::whereNull('deleted_at')
-                ->where('type', Post::POST_TYPE_LINK)
+            $posts = Post::query()->whereNull('deleted_at')
+                ->where('type', PostTypeEnum::Link)
                 ->whereNull('image_path');
             $this->info($posts->count() . ' potential posts found. This could take several minutes.');
 
@@ -76,7 +77,7 @@ class ThumbnailCommand extends Command
      */
     private function createThumbnail(Post $post): void
     {
-        if ($post->type === Post::POST_TYPE_TEXT) {
+        if ($post->type === PostTypeEnum::Text) {
             $this->error('Post is not a link and therefore has no thumbnail');
             return;
         }

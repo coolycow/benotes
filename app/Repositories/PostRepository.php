@@ -40,4 +40,18 @@ class PostRepository extends BaseRepository implements PostRepositoryInterface
                 ->where('collection_id', $collectionId)
                 ->max('order') + 1;
     }
+
+    /**
+     * @param int $userId
+     * @param int $type
+     * @return bool
+     */
+    public function hasUncategorizedWithType(int $userId, int $type): bool
+    {
+        return $this->startCondition()
+            ->where('user_id', $userId)
+            ->whereNull('collection_id')
+            ->where('type', $type)
+            ->exists();
+    }
 }

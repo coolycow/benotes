@@ -16,7 +16,6 @@ class ExportController extends Controller
      */
     public function index(): JsonResponse|BinaryFileResponse
     {
-
         if (!is_writable(config('benotes.temporary_directory'))) {
             return response()->json('Missing write permission', Response::HTTP_BAD_GATEWAY);
         }
@@ -28,8 +27,7 @@ class ExportController extends Controller
             ->empty();
 
         $path = $tempDirectory->path('export.html');
-        $encoder = new NetscapeBookmarkEncoder(Auth::id());
-        $encoder->encodeToFile($path);
+        (new NetscapeBookmarkEncoder(Auth::id()))->encodeToFile($path);
 
         return response()->download($path)->deleteFileAfterSend();
     }

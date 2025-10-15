@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PostTypeEnum;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
@@ -121,7 +122,7 @@ class ImAndExportTest extends TestCase
             'content'       => 'https://gitlab.com',
             'url'           => 'https://gitlab.com',
             'base_url'      => 'https://gitlab.com',
-            'type'          => Post::POST_TYPE_LINK,
+            'type'          => PostTypeEnum::Link,
             'collection_id' => $collection->id
         ]);
 
@@ -143,7 +144,7 @@ class ImAndExportTest extends TestCase
             'content'       => 'https://gitlab.com',
             'url'           => 'https://gitlab.com',
             'base_url'      => 'https://gitlab.com',
-            'type'          => Post::POST_TYPE_LINK,
+            'type'          => PostTypeEnum::Link,
             'collection_id' => null
         ]);
 
