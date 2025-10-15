@@ -1,8 +1,8 @@
 <template>
     <li class="md:inline-block mx-6 md:mx-4 my-4 relative text-left post" :post-id="post.id">
-        <PostItemLink v-if="post.type === 'link'" :post="post" :show-context-menu="showContextMenu" :permission="permission"
+        <PostItemLink v-if="post.type === POST_TYPE_LINK" :post="post" :show-context-menu="showContextMenu" :permission="permission"
             :restore="restore" />
-        <PostItemText v-else-if="post.type === 'text'" :post="post" :show-context-menu="showContextMenu"
+        <PostItemText v-else-if="post.type === POST_TYPE_TEXT" :post="post" :show-context-menu="showContextMenu"
             :permission="permission" :restore="restore" />
         <PostItemPlaceholder v-else />
         <div v-if="debug" class="absolute bottom-0 w-full">
@@ -30,6 +30,8 @@ export default {
     data() {
         return {
             debug: false,
+            POST_TYPE_TEXT: 1,
+            POST_TYPE_LINK: 2,
         }
     },
     methods: {
