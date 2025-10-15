@@ -18,6 +18,7 @@
         "ext-dom": "*",
         "ext-pdo": "*",
         "ext-zip": "*",
+        "ext-http": "*",
         "chrome-php/chrome": "^1.14",
         "doctrine/dbal": "^3.5",
         "fruitcake/laravel-cors": "^2.0",
