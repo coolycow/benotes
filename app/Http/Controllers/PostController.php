@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PostTypeEnum;
 use App\Enums\UserPermissionEnum;
 use App\Http\Requests\Post\PostDeleteRequest;
 use App\Http\Requests\Post\PostIndexRequest;
@@ -17,6 +16,7 @@ use App\Repositories\Contracts\CollectionRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\TagRepositoryInterface;
 use App\Services\PostService;
+use App\Services\PostUpdateService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +26,7 @@ class PostController extends Controller
 {
     public function __construct(
         protected PostService $service,
+        protected PostUpdateService $updateService,
         protected PostRepositoryInterface $repository,
         protected CollectionRepositoryInterface $collectionRepository,
         protected TagRepositoryInterface $tagRepository,
@@ -153,117 +154,21 @@ class PostController extends Controller
         $validatedData = $request->validated();
 
         $post = Post::withTrashed()->find($id);
+
         if (!$post) {
             return response()->json('Post not found.', Response::HTTP_NOT_FOUND);
         }
 
         $this->authorize('update', $post);
 
-        if (!$request->getCollectionId() && $request->getIsUncategorized() === false) {
-            // request contains no knowledge about a collection
-            $validatedData['collection_id'] = $post->collection_id;
-        } else {
-            $validatedData['collection_id'] = Collection::getCollectionId(
-                $request->getCollectionId(),
-                $request->getIsUncategorized()
-            );
-        }
-
-        if (!empty($validatedData['collection_id'])) {
-            $collection = $this->collectionRepository->getById($validatedData['collection_id']);
-            if (!$collection) {
-                throw new ModelNotFoundException(
-                    'Collection does not exist',
-                );
-            }
-        }
-
-        if (isset($validatedData['content'])) {
-            $validatedData['content'] = $this->service->sanitize($validatedData['content']);
-            $info = $this->service->computePostData($validatedData['content'], $request->getTitle());
-
-            if ($validatedData['content'] === $post->content) {
-                foreach (['title', 'description', 'image_path'] as $attr) {
-                    if (!empty($post->{$attr})) {
-                        unset($info[$attr]);
-                    }
-                }
-            }
-        } else {
-            $info = array();
-            $info['type'] = $post->getRawOriginal('type');
-        }
-
-        $newValues = array_merge($validatedData, $info);
-        $newValues['user_id'] = Auth::id();
-
-        if ($post->collection_id !== $validatedData['collection_id']) {
-            // post wants to have a different collection than before
-            // compute order in new collection
-            $newValues['order'] = Post::query()
-                    ->where('collection_id', $validatedData['collection_id'])
-                    ->max('order') + 1;
-
-            // reorder old collection
-            Post::query()
-                ->where('collection_id', $post->collection_id)
-                ->where('order', '>', $post->order)
-                ->decrement('order');
-
-        } else if (isset($validatedData['order'])) {
-            // post wants to be positioned somewhere else
-            // staying in the same collection as before
-            $newOrder = $validatedData['order'];
-
-            // check authenticity of order
-            if (!Post::query()
-                ->where('collection_id', $post->collection_id)
-                ->where('order', $newOrder)->exists()
-            ) {
-                $newOrder = Post::query()
-                    ->where('collection_id', $post->collection_id)
-                    ->max('order');
-                $newValues['order'] = $newOrder;
-            }
-
-            $oldOrder = $post->order;
-            if ($newOrder !== $oldOrder) {
-                if ($newOrder > $oldOrder) {
-                    Post::query()
-                        ->where('collection_id', $post->collection_id)
-                        ->whereBetween('order', [$oldOrder + 1, $newOrder])
-                        ->decrement('order');
-                } else {
-                    Post::query()
-                        ->where('collection_id', $post->collection_id)
-                        ->whereBetween('order', [$newOrder, $oldOrder - 1])
-                        ->increment('order');
-                }
-            }
-        }
-
-        $post->update($newValues);
-
-        if ($request->getIsArchived()) {
-            $is_currently_archived = $post->trashed();
-            if ($request->getIsArchived() === true && $is_currently_archived === false) {
-                $this->service->delete($post);
-                $post = Post::withTrashed()->find($post->id);
-            } else if ($request->getIsArchived() === false && $is_currently_archived === true) {
-                $post = $this->service->restore($post);
-            }
-        }
-
-        if ($info['type'] === PostTypeEnum::Link && isset($validatedData['content'])) {
-            if (empty($post->image_path) || $validatedData['content'] !== $post->content)
-                $this->service->saveImage($info['image_path'], $post);
-        }
-
-        if (isset($newValues['tags'])) {
-            $this->service->saveTags($post->id, $newValues['tags']);
-        }
-
-        $post->tags = $post->tags()->get();
+        $post = $this->updateService->update(
+            $post,
+            $validatedData,
+            $request->getCollectionId(),
+            $request->getIsUncategorized(),
+            $request->getTitle(),
+            $request->getIsArchived()
+        );
 
         return response()->json(['data' => $post], Response::HTTP_OK);
     }
