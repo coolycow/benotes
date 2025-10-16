@@ -52,15 +52,12 @@ readonly class ThumbnailService
         $imagePath = $path;
         $width = 400;
         $height = 210;
-        // use googlebot in order to avoid, among others, cookie consensus banners
-        $useragent = 'Googlebot/2.1 (+http://www.google.com/bot.html)';
-        $browser = config('benotes.browser') === 'chromium' ? 'chromium-browser' : 'google-chrome';
 
-        $factory = new BrowserFactory($browser);
+        $factory = new BrowserFactory(config('benotes.browser'));
         $browser = $factory->createBrowser([
             'noSandbox'   => true,
             'keepAlive'   => true,
-            'userAgent'   => $useragent,
+            'userAgent'   => config('benotes.useragent'),
             'customFlags' => [
                 '--disable-dev-shm-usage',
                 '--disable-gpu'

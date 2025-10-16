@@ -9,7 +9,7 @@ use App\Repositories\Contracts\CollectionRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 
-class PostUpdateService
+readonly class PostUpdateService
 {
     /**
      * @param PostService $service

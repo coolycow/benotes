@@ -75,5 +75,6 @@ return [
 
     'thumbnail_filler_interval' => env('THUMBNAIL_FILLER_INTERVAL', '0 */2 * * *'),
 
-    'browser' => env('BROWSER', 'chromium')
+    'browser' => env('BROWSER', 'chromium-browser'),
+    'useragent' => env('USERAGENT', 'Googlebot/2.1 (+http://www.google.com/bot.html)'),
 ];
