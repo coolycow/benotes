@@ -206,6 +206,22 @@ return [
             'tries' => 1,
             'timeout' => 60,
             'nice' => 0,
+            'balanceMaxShift' => 1,
+            'balanceCooldown' => 3,
+        ],
+        'supervisor-images' => [
+            'connection' => 'redis',
+            'queue' => ['image'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 1,
+            'timeout' => 60,
+            'nice' => 0,
+            'balanceMaxShift' => 1,
+            'balanceCooldown' => 3,
         ],
         'supervisor-messages' => [
             'connection' => 'redis',
@@ -228,17 +244,42 @@ return [
         'production' => [
             'supervisor-default' => [
                 'connection' => 'redis',
-                'maxProcesses' => 10,
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-images' => [
+                'connection' => 'redis',
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-messages' => [
+                'connection' => 'redis',
+                'maxProcesses' => 4,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
         ],
-
         'local' => [
             'supervisor-default' => [
                 'connection' => 'redis',
-                'maxProcesses' => 3,
+                'maxProcesses' => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
             ],
-        ],
+            'supervisor-images' => [
+                'connection' => 'redis',
+                'maxProcesses' => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-messages' => [
+                'connection' => 'redis',
+                'maxProcesses' => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+        ]
     ],
 ];

@@ -40,7 +40,7 @@ use Throwable;
  * SOFTWARE.
  **/
 
-class NetscapeBookmarkDecoder
+readonly class NetscapeBookmarkDecoder
 {
     protected array $items;
     private PostService $postService;

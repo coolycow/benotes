@@ -8,14 +8,12 @@ use App\Jobs\ProcessMissingThumbnail;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\PostTagRepositoryInterface;
 use DOMDocument;
-use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Intervention\Image\Exception\ImageException;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
-use HeadlessChromium\BrowserFactory;
 use App\Models\Post;
 use App\Models\Collection;
 use App\Models\User;
@@ -27,6 +25,7 @@ readonly class PostService
         protected PostRepositoryInterface $repository,
         protected PostTagRepositoryInterface $postTagRepository,
         protected PostTagService $postTagService,
+        protected ThumbnailService $thumbnailService,
     )
     {
         //
@@ -392,7 +391,6 @@ readonly class PostService
      */
     public function saveImage($image_path, Post $post): void
     {
-
         if (empty($image_path)) {
             ProcessMissingThumbnail::dispatchIf(config('benotes.generate_missing_thumbnails'), $post);
             return;
@@ -406,111 +404,19 @@ readonly class PostService
         try {
             $image = Image::make($image_path);
         } catch (ImageException $e) {
-            Log::notice('Image could not be created');
+            Log::notice('Image could not be created: ' . $e->getMessage());
+            return;
         }
 
         if (!isset($image)) {
             return;
         }
 
-        $filename = $this->generateThumbnailFilename($image_path, $post->id);
+        $filename = $this->thumbnailService->generateThumbnailFilename($image_path, $post->id);
         $image = $image->fit(400, 210)->limitColors(255);
         Storage::put('thumbnails/' . $filename, $image->stream());
 
         $post->update(['image_path' => $filename]);
-    }
-
-    /**
-     * @param string $filename
-     * @param string $path
-     * @param string $url
-     * @param int $postId
-     * @return void
-     * @throws Exception
-     */
-    public function crawlWithChrome(string $filename, string $path, string $url, int $postId): void
-    {
-        $imagePath = $path;
-        $width = 400;
-        $height = 210;
-        // use googlebot in order to avoid, among others, cookie consensus banners
-        $useragent = 'Googlebot/2.1 (+http://www.google.com/bot.html)';
-        $browser = config('benotes.browser') === 'chromium' ? 'chromium-browser' : 'google-chrome';
-
-        $factory = new BrowserFactory($browser);
-        $browser = $factory->createBrowser([
-            'noSandbox'   => true,
-            'keepAlive'   => true,
-            'userAgent'   => $useragent,
-            'customFlags' => [
-                '--disable-dev-shm-usage',
-                '--disable-gpu'
-            ],
-            'debugLogger' => config('app.debug') ? storage_path('logs/browser.log') : null
-        ]);
-
-        try {
-            $page = $browser->createPage();
-            $page->navigate($url)->waitForNavigation();
-            sleep(3); // in order to make sure that the site is reallly loaded
-
-            $title = $page->dom()->querySelector('title')->getText();
-            $descriptionEl = $page->dom()->querySelector('head meta[name=description]');
-            $description = $descriptionEl?->getAttribute('content');
-            $imageEl = $page->dom()->querySelector('head meta[property=\'og:image\']');
-            $imagePathOG = $imageEl?->getAttribute('content');
-
-            $post = $this->repository->getById($postId);
-
-            if (!empty($title) && $title !== $post->title) {
-                $post->title = $title;
-                $post->save();
-            }
-
-            if (!empty($description) && empty($post->description)) {
-                $post->description = $description;
-                $post->save();
-            }
-
-            if (!empty($imagePathOG)) {
-                // if crawling the website with chromium reveals an already
-                // existing thumbnail, use it instead
-                $imagePath = $imagePathOG;
-            } else {
-                $page->screenshot()->saveToFile($imagePath);
-            }
-
-            // temporally store the image
-            $image = Image::make($imagePath);
-            if (!$image) {
-                return;
-            }
-            $image = $image->fit($width, $height);
-            Storage::put('thumbnails/' . $filename, $image->stream());
-        } catch (Exception $e) {
-            Log::debug('Attempt to create thumbnail failed');
-        } finally {
-            $browser->close();
-        }
-    }
-
-    /**
-     * @param $name
-     * @param $id
-     * @return string
-     */
-    public function generateThumbnailFilename($name, $id): string
-    {
-        return 'thumbnail_' . md5($name) . '_' . $id . '.jpg';
-    }
-
-    /**
-     * @param $filename
-     * @return string
-     */
-    public function getThumbnailPath($filename): string
-    {
-        return storage_path('app/public/thumbnails/' . $filename);
     }
 
     /**
@@ -541,12 +447,12 @@ readonly class PostService
         $user_id = $user->getKey();
 
         Post::query()->create([
-            'title'         => 'GitHub - fr0tt/benotes: An open source self hosted web app for your notes and bookmarks.',
-            'content'       => 'https://github.com/fr0tt/benotes',
+            'title'         => 'GitHub - coolycow/benotes: An open source self hosted web app for your notes and bookmarks.',
+            'content'       => 'https://github.com/coolycow/benotes',
             'type'          => PostTypeEnum::Link,
-            'url'           => 'https://github.com/fr0tt/benotes',
+            'url'           => 'https://github.com/coolycow/benotes',
             'color'         => '#1e2327',
-            'image_path'    => 'https://opengraph.githubassets.com/9c1b74a8cc5eeee5c5c9f62701c42e1356595422d840d2e209bceb836deb5ffb/fr0tt/benotes',
+            'image_path'    => 'https://opengraph.githubassets.com/9c1b74a8cc5eeee5c5c9f62701c42e1356595422d840d2e209bceb836deb5ffb/coolycow/benotes',
             'base_url'      => 'https://github.com',
             'collection_id' => $collection_id,
             'user_id'       => $user_id,

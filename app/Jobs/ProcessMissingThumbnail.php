@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\PostTypeEnum;
 use App\Models\Post;
 use App\Services\PostService;
+use App\Services\ThumbnailService;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,19 +25,18 @@ class ProcessMissingThumbnail implements ShouldQueue
      */
     public int $tries = 3;
 
+    private ThumbnailService $service;
+
     /**
      * Create a new job instance.
      *
      * @param Post $post
-     * @param PostService $service
      */
-    public function __construct(
-        private Post $post,
-        private PostService $service
-    )
+    public function __construct(private Post $post)
     {
+        $this->queue = 'image';
         $this->post = $post->withoutRelations();
-        $this->service = app(PostService::class);
+        $this->service = app(ThumbnailService::class);
     }
 
     /**
@@ -66,7 +66,7 @@ class ProcessMissingThumbnail implements ShouldQueue
         if (!empty($this->post->deleted_at)) {
             return;
         }
-        if (@get_headers($this->post->url) == false) {
+        if (!@get_headers($this->post->url)) {
             return;
         }
 
@@ -75,8 +75,9 @@ class ProcessMissingThumbnail implements ShouldQueue
         $this->service->crawlWithChrome($filename, $path, $this->post->url, $this->post->id);
 
         if (file_exists($path)) {
-            $this->post->image_path = $filename;
-            $this->post->save();
+            $this->post->update([
+                'image_path' => $filename,
+            ]);
         }
     }
 }

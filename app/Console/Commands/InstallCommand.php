@@ -40,7 +40,6 @@ class InstallCommand extends Command
         $this->line(PHP_EOL);
 
         if (!$createOnlyUser) {
-
             $bar = $this->output->createProgressBar(4);
             $bar->start();
             $this->line(PHP_EOL);
@@ -55,9 +54,15 @@ class InstallCommand extends Command
             $bar->advance();
             $this->line(PHP_EOL);
 
-            // database migration
+            // database fresh and migration
             $this->call('migrate:fresh');
             $this->call('migrate');
+            $this->line(PHP_EOL);
+            $bar->advance();
+            $this->line(PHP_EOL);
+
+            // create storage link
+            $this->call('storage:link');
             $this->line(PHP_EOL);
             $bar->advance();
             $this->line(PHP_EOL);

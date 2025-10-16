@@ -16,6 +16,10 @@ class TagScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
+        if (app()->runningInConsole() || !auth()->check()) {
+            return;
+        }
+
         $builder->where('user_id', Auth::id());
     }
 }

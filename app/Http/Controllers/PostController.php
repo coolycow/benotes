@@ -159,7 +159,7 @@ class PostController extends Controller
 
         $this->authorize('update', $post);
 
-        if ($request->getCollectionId() && $request->getIsUncategorized() === false) {
+        if (!$request->getCollectionId() && $request->getIsUncategorized() === false) {
             // request contains no knowledge about a collection
             $validatedData['collection_id'] = $post->collection_id;
         } else {
