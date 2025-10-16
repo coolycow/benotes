@@ -40,7 +40,7 @@ use Illuminate\Support\Str;
  * @property-read string|null $human_deleted_at
  *
  * @property-read User $user
- * @property-read Collection|Tag[] $tags
+ * @property Collection|Tag[] $tags // Важно делать именно так, чтобы правильно работал трансфер!!!
  */
 class Post extends Model
 {

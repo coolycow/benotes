@@ -157,6 +157,9 @@ readonly class PostService
             'order' => $this->repository->getNextOrder($user_id, $collection_id)
         ], $info);
 
+        /**
+         * @var Post $post
+         */
         $post = Post::query()->create($attributes);
 
         if ($info['type'] === PostTypeEnum::Link) {
@@ -167,7 +170,12 @@ readonly class PostService
             $this->saveTags($post->getKey(), $tags);
         }
 
-        return $post->refresh();
+        /**
+         * Важно делать именно так, чтобы правильно работал трансфер!!!
+         * @see resources/js/store/modules/post.js
+         */
+        $post->tags = $post->tags()->get();
+        return $post;
     }
 
     /**
