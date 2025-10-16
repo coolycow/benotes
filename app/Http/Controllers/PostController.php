@@ -263,7 +263,9 @@ class PostController extends Controller
             $this->service->saveTags($post->id, $newValues['tags']);
         }
 
-        return response()->json(['data' => $post->refresh()], Response::HTTP_OK);
+        $post->tags = $post->tags()->get();
+
+        return response()->json(['data' => $post], Response::HTTP_OK);
     }
 
     /**
