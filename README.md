@@ -44,7 +44,7 @@ php artisan thumbnail:generate
 Пакет позволяет использовать своеобразное расширение браузера и может быть использован в этом случае как ярлык для создания новых постов.
 
 <img width="110" alt="Benotes NEXT Bookmarklet"
-    src="https://github.com/coolycow/benotes/blob/master/public/bookmarklet.gif"/>
+    src="https://raw.githubusercontent.com/coolycow/benotes/master/public/bookmarklet.gif"/>
 
 ```javascript
 javascript: (function() {
@@ -58,7 +58,7 @@ javascript: (function() {
 
 <p align="center">
     <img width="110" alt="Benotes Logo"
-        src="https://github.com/coolycow/benotes/blob/master/public/apple-touch-icon.png"/>
+        src="https://raw.githubusercontent.com/coolycow/benotes/master/public/apple-touch-icon.png"/>
 </p>
 
 <h1 align="center">Benotes</h1>
