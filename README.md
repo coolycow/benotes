@@ -54,16 +54,13 @@ javascript: (function() {
 	window.open(applicationUrl);
 })();
 ```
-
 <p align="center">
-    <img width="110" alt="Benotes Logo"
-        src="https://raw.githubusercontent.com/coolycow/benotes/master/public/apple-touch-icon.png"/>
+![Benotes Logo](https://raw.githubusercontent.com/coolycow/benotes/master/public/apple-touch-icon.png)
 </p>
 
 <h1 align="center">Benotes</h1>
 
-<img src="https://user-images.githubusercontent.com/33751346/177018302-61f0e613-c7ff-40ff-b260-771f78489233.jpg"
-    alt="Benotes Thumbnail">
+![Benotes Thumbnail](https://user-images.githubusercontent.com/33751346/177018302-61f0e613-c7ff-40ff-b260-771f78489233.jpg)
 
 An open source self hosted web app for your notes and bookmarks side by side.
 
