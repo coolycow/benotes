@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\FileStoreRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 use Symfony\Component\HttpFoundation\Response;
 
 class FileController extends Controller
 {
-
-    public function store(Request $request)
+    /**
+     * @param FileStoreRequest $request
+     * @return JsonResponse
+     */
+    public function store(FileStoreRequest $request): JsonResponse
     {
-
-        $this->validate($request, [
-            'file' => 'image|required',
-        ]);
-
         $path = $request->file('file')->store('attachments');
 
         Image::make(Storage::path($path))

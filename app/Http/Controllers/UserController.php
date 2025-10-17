@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Services\PostService;
+use App\Services\PostSeedService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +17,7 @@ class UserController extends Controller
 {
     public function __construct(
         protected UserRepositoryInterface $userRepository,
-        protected PostService $postService
+        protected PostSeedService $postSeedService
     )
     {
         //
@@ -67,7 +67,7 @@ class UserController extends Controller
             'permission' => 7
         ]);
 
-        $this->postService->seedIntroData($user);
+        $this->postSeedService->seedIntroData($user->getKey());
 
         return response()->json(['data' => $user], 201);
     }

@@ -41,13 +41,8 @@ class PostController extends Controller
      */
     public function index(PostIndexRequest $request): JsonResponse
     {
-        $auth_type = User::getAuthenticationType();
-
-        if ($auth_type === UserPermissionEnum::Unauthorized) {
-            return response()->json('', Response::HTTP_UNAUTHORIZED);
-        }
-
         $after_post = null;
+
         if ($request->getAfterId()) {
             if (!$request->getCollectionId() && !$request->getIsUncategorized()) {
                 return response()->json(
@@ -55,12 +50,13 @@ class PostController extends Controller
                     Response::HTTP_BAD_REQUEST
                 );
             }
-            $after_post = $this->repository->getById($request->getAfterId());
-            if ($after_post == null) {
+
+            if (!$after_post = $this->repository->getById($request->getAfterId())) {
                 return response()->json('after_id does not exist', Response::HTTP_NOT_FOUND);
             }
 
             $this->authorize('view', $after_post);
+
             $collection_id = Collection::getCollectionId(
                 $request->getCollectionId(),
                 $request->getIsUncategorized()
@@ -79,12 +75,12 @@ class PostController extends Controller
 
         $posts = $this->service->all(
             Auth::id(),
+            User::getAuthenticationType(),
             $request->getCollectionId(),
             $request->getIsUncategorized(),
             $request->getTagId(),
             $request->getWithTags(),
             $request->getFilter(),
-            $auth_type,
             $request->getIsArchived(),
             $after_post,
             $request->getOffset(),
@@ -166,8 +162,7 @@ class PostController extends Controller
             $validatedData,
             $request->getCollectionId(),
             $request->getIsUncategorized(),
-            $request->getTitle(),
-            $request->getIsArchived()
+            $request->getTitle()
         );
 
         return response()->json(['data' => $post], Response::HTTP_OK);

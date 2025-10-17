@@ -6,6 +6,7 @@ use App\Enums\ThemeEnum;
 use App\Enums\UserPermissionEnum;
 use App\Scopes\UserScope;
 use Carbon\Carbon;
+use http\Exception\UnexpectedValueException;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -117,19 +118,27 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    /**
+     * @return string
+     */
     public static function resetUrl(): string
     {
         return '/reset';
     }
 
+    /**
+     * @return UserPermissionEnum
+     * @throws UnexpectedValueException
+     */
     public static function getAuthenticationType(): UserPermissionEnum
     {
         if (Auth::guard('api')->check()) {
             return UserPermissionEnum::Api;
-        } else if (Auth::guard('share')->check()) {
+        } elseif (Auth::guard('share')->check()) {
             return UserPermissionEnum::Share;
         }
-        return UserPermissionEnum::Unauthorized;
+
+        throw new UnexpectedValueException('User not authenticated');
     }
 
     /**

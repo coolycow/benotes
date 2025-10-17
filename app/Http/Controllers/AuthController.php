@@ -10,7 +10,8 @@ use App\Http\Requests\SendResetRequest;
 use App\Mail\CodeMail;
 use App\Models\User;
 use App\Services\ConfirmationCodeService;
-use App\Services\PostService;
+use App\Services\PasswordService;
+use App\Services\PostSeedService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,6 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use Psr\SimpleCache\InvalidArgumentException;
 use Random\RandomException;
@@ -31,7 +31,8 @@ use Random\RandomException;
 class AuthController extends Controller
 {
     public function __construct(
-        protected PostService $postService,
+        protected PostSeedService $postSeedService,
+        protected PasswordService $passwordService,
         protected ConfirmationCodeService $confirmationCodeService
     )
     {
@@ -123,10 +124,10 @@ class AuthController extends Controller
             $user = User::query()->create([
                 'email' => $email,
                 'name' => strstr($email, '@', true),
-                'password' => Str::random(),
+                'password' => $this->passwordService->generateHashedPassword()
             ]);
 
-            $this->postService->seedIntroData($user);
+            $this->postSeedService->seedIntroData($user->getKey());
         }
 
         Auth::setUser($user);

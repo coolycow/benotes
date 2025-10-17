@@ -10,7 +10,6 @@ use App\Models\User;
 
 class TestingController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware('testing');

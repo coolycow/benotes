@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ThemeEnum;
+use App\Enums\UserPermissionEnum;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -17,15 +19,10 @@ class CreateUsersTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->unsignedTinyInteger('permission')->default(0);
-            $table->string('theme')->default('default');
+            $table->string('permission')->default(UserPermissionEnum::Api->value);
+            $table->string('theme')->default(ThemeEnum::Default->value);
             $table->timestamps();
-        });
-
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('email_verified_at');
         });
     }
 

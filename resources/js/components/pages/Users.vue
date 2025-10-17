@@ -21,7 +21,7 @@
                 <td>{{ user.email }}</td>
                 <td class="text-right">
                     <span
-                        v-if="user.permission == 255"
+                        v-if="user.permission === 'admin'"
                         class="px-2 py-1 bg-gray-800 text-white border border-white"
                         >Owner</span
                     >

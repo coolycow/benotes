@@ -25,14 +25,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('auth/login-password', [AuthController::class, 'loginPassword']);
 Route::post('auth/login-code', [AuthController::class, 'loginCode']);
-Route::post('auth/send-code', [AuthController::class, 'sendCode'])
-    ->middleware('throttle:3,1');;
+Route::post('auth/send-code', [AuthController::class, 'sendCode'])->middleware('throttle:3,1');;
 Route::post('auth/refresh', [AuthController::class, 'refresh']);
 Route::post('auth/forgot', [AuthController::class, 'sendReset']);
 Route::post('auth/reset', [AuthController::class, 'reset']);
 
 Route::group([
-    'middleware' => 'auth:api' //'auth:sanctum'
+    'middleware' => 'auth:api'
 ], function () {
 
     Route::get('auth/me', [AuthController::class, 'me']);
@@ -74,7 +73,7 @@ Route::group([
 });
 
 Route::group([
-    'middleware' => 'auth:share,api' // ,auth:sanctum
+    'middleware' => 'auth:share,api'
 ], function () {
     Route::get('posts', [PostController::class, 'index']);
     Route::get('posts/{id}', [PostController::class, 'show']);

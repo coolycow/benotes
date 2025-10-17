@@ -3,12 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Enums\UserPermissionEnum;
-use App\Services\PostService;
+use App\Services\PasswordService;
+use App\Services\PostSeedService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use App\Models\Post;
 
 class InstallCommand extends Command
 {
@@ -33,7 +32,6 @@ class InstallCommand extends Command
      */
     public function handle(): void
     {
-
         $createOnlyUser = $this->option('only-user');
 
         $this->line('Initiate installation...');
@@ -70,23 +68,13 @@ class InstallCommand extends Command
 
         // database seeding
         $this->info('Create your Admin account:');
-        $username = $this->ask('Username', 'Admin');
         $email = $this->ask('Email');
-        $password = $this->secret('Password');
-        $password2 = $this->secret('Re-entered password');
 
         $validator = Validator::make([
-            'username' => $username,
             'email' => $email
         ], [
-            'username' => 'string',
             'email' => 'email',
         ]);
-
-        if ($password !== $password2) {
-            $this->error('Re-entered password does not match password');
-            return;
-        }
 
         if ($validator->fails()) {
             foreach ($validator->errors()->all() as $error) {
@@ -95,17 +83,16 @@ class InstallCommand extends Command
             return;
         }
 
-        $user = new User;
-        $user->name = $username;
-        $user->email = $email;
-        $user->password = Hash::make($password);
-        $user->permission = UserPermissionEnum::Admin;
-        $user->save();
+        $user = User::query()->create([
+            'email' => $email,
+            'name' => strstr($email, '@', true),
+            'password' => app(PasswordService::class)->generateHashedPassword(),
+            'permission' => UserPermissionEnum::Admin
+        ]);
 
-        app(PostService::class)->seedIntroData($user);
+        app(PostSeedService::class)->seedIntroData($user->getKey());
 
         if (!$createOnlyUser) {
-
             $bar->finish();
         }
 

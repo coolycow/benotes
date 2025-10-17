@@ -13,10 +13,14 @@ readonly class PostUpdateService
 {
     /**
      * @param PostService $service
+     * @param PostTagService $postTagService
+     * @param PostImageService $postImageService
      * @param CollectionRepositoryInterface $collectionRepository
      */
     public function __construct(
         protected PostService $service,
+        protected PostTagService $postTagService,
+        protected PostImageService $postImageService,
         protected CollectionRepositoryInterface $collectionRepository,
     )
     {
@@ -29,7 +33,6 @@ readonly class PostUpdateService
      * @param int|null $collectionId
      * @param bool $isUncategorized
      * @param string|null $title
-     * @param bool $isArchived
      * @return Post
      */
     public function update(
@@ -37,8 +40,7 @@ readonly class PostUpdateService
         array $validatedData,
         ?int $collectionId = null,
         bool $isUncategorized = false,
-        ?string $title = null,
-        bool $isArchived = false
+        ?string $title = null
     ): Post
     {
         if (!$collectionId && $isUncategorized === false) {
@@ -126,23 +128,24 @@ readonly class PostUpdateService
 
         $post->update($newValues);
 
-        if ($isArchived) {
+        if (isset($validatedData['is_archived'])) {
             $is_currently_archived = $post->trashed();
-            if ($isArchived === true && $is_currently_archived === false) {
+
+            if ($validatedData['is_archived'] === true && !$is_currently_archived) {
                 $this->service->delete($post);
                 $post = Post::withTrashed()->find($post->id);
-            } elseif ($isArchived === false && $is_currently_archived === true) {
+            } elseif ($validatedData['is_archived'] === false && $is_currently_archived === true) {
                 $post = $this->service->restore($post);
             }
         }
 
         if ($info['type'] === PostTypeEnum::Link && isset($validatedData['content'])) {
             if (empty($post->image_path) || $validatedData['content'] !== $post->content)
-                $this->service->saveImage($info['image_path'], $post);
+                $this->postImageService->saveImage($info['image_path'], $post);
         }
 
         if (isset($newValues['tags'])) {
-            $this->service->saveTags($post->id, $newValues['tags']);
+            $this->postTagService->saveTags($post->id, $newValues['tags']);
         }
 
         $post->tags = $post->tags()->get();

@@ -22,7 +22,7 @@ class AuthServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         $this->registerPolicies();
 
@@ -32,7 +32,9 @@ class AuthServiceProvider extends ServiceProvider
 
         $this->app['auth']->viaRequest('token', function ($request) {
             if ($request->bearerToken()) {
-                return Share::where('token', $request->bearerToken())->where('is_active', true)->first();
+                return Share::query()
+                    ->where('token', $request->bearerToken())
+                    ->where('is_active', true)->first();
             }
         });
     }

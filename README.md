@@ -26,6 +26,36 @@
 - Изменить настройки почты;
 - Добавить логин и пароль для Horizon.
 
+## Изображения
+### Автоматическая генерация
+По умолчанию отсутствующие миниатюры генерируются каждые 2 часа.
+Если вы хотите изменить это (например, сделать генерацию раз в неделю), добавьте следующее в свой .env:
+```dotenv
+THUMBNAIL_FILLER_INTERVAL="0 0 */7 * *"
+```
+
+### Создание миниатюр вручную
+Миниатюры можно создать вручную, выполнив следующую команду:
+```shell
+php artisan thumbnail:generate
+```
+
+## Bookmarklet
+Пакет позволяет использовать своеобразное расширение браузера и может быть использован в этом случае как ярлык для создания новых постов.
+
+<img width="110" alt="Benotes NEXT Bookmarklet"
+    src="https://raw.githubusercontent.com/coolycow/benotes/master/public/bookmarklet.gif"/>
+
+```javascript
+javascript: (function() {
+	var server = 'https://YouNeedToChangeThat.com';
+	var applicationUrl = server + '/c/0/p/create';
+	applicationUrl += '?url=' + encodeURIComponent(window.location);
+	applicationUrl += '&auto_close';
+	window.open(applicationUrl);
+})();
+```
+
 <p align="center">
     <img width="110" alt="Benotes Logo"
         src="https://raw.githubusercontent.com/coolycow/benotes/master/public/apple-touch-icon.png"/>
