@@ -135,7 +135,10 @@ export default {
                     this.$cookie.set('token', token, { expires: 14, samesite: 'Strict' })
                     axios.defaults.headers.common = { Authorization: `Bearer ${token}` }
                     this.$store.dispatch('auth/fetchAuthUser')
-                    this.$router.push({ path: '/' })
+
+                    // Редирект на целевую страницу, с которой был произведен вход.
+                    const continueUrl = this.$route.query.continue || '/';
+                    this.$router.replace(decodeURIComponent(continueUrl));
                 })
                 .catch((error) => {
                         this.error = error.response?.data?.message || 'Confirmation code is invalid'

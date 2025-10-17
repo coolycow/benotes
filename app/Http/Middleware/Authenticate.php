@@ -4,39 +4,24 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class Authenticate extends Middleware
 {
-    /**
-     * Get the path the user should be redirected to when they are not authenticated.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return string|null
-     */
-    protected function redirectTo($request)
-    {
-        /*
-        if (!$request->expectsJson()) {
-            return route('login');
-        }
-        */
-    }
 
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  Request  $request
+     * @param Closure $next
      * @param  string[]  ...$guards
      * @return mixed
-     *
-     * @throws \Illuminate\Auth\AuthenticationException
      */
-    public function handle($request, Closure $next, ...$guards)
+    public function handle($request, Closure $next, ...$guards): Response
     {
-        if (in_array(/*'auth:sanctum'*/'api', $guards) && Auth::guard('api')->check()) {
+        if (in_array('api', $guards) && Auth::guard('api')->check()) {
             return $next($request);
         }
 
@@ -46,7 +31,7 @@ class Authenticate extends Middleware
                 return $next($request);
             }
         }
-        //$this->authenticate($request, $guards);
+
         return response('', Response::HTTP_UNAUTHORIZED);
     }
 }

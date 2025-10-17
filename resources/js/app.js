@@ -67,7 +67,9 @@ router.beforeEach((to, from, next) => {
             .dispatch('auth/getAuthUser')
             .then((authUser) => {
                 if (!authUser) {
-                    next({ path: '/login' })
+                    // Редирект на логин с передачей текущего URL для возврата:
+                    const continueUrl = encodeURIComponent(to.fullPath);
+                    next({ path: '/login', query: { continue: continueUrl } })
                 } else {
                     store.dispatch('auth/setPermission', 7)
                     store.dispatch('hideSidebarOnMobile')
@@ -75,7 +77,8 @@ router.beforeEach((to, from, next) => {
                 }
             })
             .catch(() => {
-                next({ path: '/login' })
+                const continueUrl = encodeURIComponent(to.fullPath);
+                next({ path: '/login', query: { continue: continueUrl } })
             })
     } else {
         next()
