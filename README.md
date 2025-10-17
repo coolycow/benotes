@@ -45,6 +45,10 @@ php artisan thumbnail:generate
 
 ![Bookmarklet](https://raw.githubusercontent.com/coolycow/benotes/master/public/bookmarklet.gif)
 
+### Как его установить
+* Создать новую закладку в вашем браузере (любое название, например, Benotes);
+* Добавить в поле URL код, который показан ниже. В этом коде необходимо заменить на второй строчке значение `https://YouNeedToChangeThat.com` на ваш ip-адрес или домен.
+
 ```javascript
 javascript: (function() {
 	var server = 'https://YouNeedToChangeThat.com';
@@ -54,9 +58,9 @@ javascript: (function() {
 	window.open(applicationUrl);
 })();
 ```
-<p align="center">
+Вот и все. Теперь вы можете посетить любой сайт и добавить его в закладки, нажав на недавно созданную закладку.
+
 ![Benotes Logo](https://raw.githubusercontent.com/coolycow/benotes/master/public/apple-touch-icon.png)
-</p>
 
 <h1 align="center">Benotes</h1>
 
