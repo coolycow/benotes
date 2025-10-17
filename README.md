@@ -43,7 +43,7 @@ php artisan thumbnail:generate
 ## Bookmarklet
 Пакет позволяет использовать своеобразное расширение браузера и может быть использован в этом случае как ярлык для создания новых постов.
 
-![Bookmarklet](public/bookmarklet.gif)
+![Bookmarklet](https://raw.githubusercontent.com/coolycow/benotes/master/public/bookmarklet.gif)
 
 ```javascript
 javascript: (function() {
