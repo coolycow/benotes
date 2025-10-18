@@ -15,20 +15,32 @@
                     <Treeselect
                         v-model="selectedCollectionId"
                         :options="optionsCollections"
-                        :normalizer="
-                            (node) => {
-                                return {
-                                    id: node.id,
-                                    label: node.name,
-                                    children:
-                                        node.nested?.length > 0
-                                            ? node.nested
-                                            : node.children,
-                                }
-                            }
-                        "
+                        :normalizer="normalizeNode"
                         placeholder=""
-                        class="block w-80" />
+                        class="block w-80">
+                        <template #value-label="{ node }">
+                            <div class="flex items-center">
+                                <div v-if="node.raw.icon_id" class="mr-2">
+                                    <svg-vue v-if="isInline(node.raw.icon_id)" :icon="'glyphs/' + node.raw.icon_id" class="w-4 h-4" />
+                                    <svg v-else class="w-4 h-4">
+                                        <use :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
+                                    </svg>
+                                </div>
+                                <span>{{ node.label }}</span>
+                            </div>
+                        </template>
+                        <template #option-label="{ node }">
+                            <div class="flex items-center">
+                                <div v-if="node.raw.icon_id" class="mr-2">
+                                    <svg-vue v-if="isInline(node.raw.icon_id)" :icon="'glyphs/' + node.raw.icon_id" class="w-4 h-4" />
+                                    <svg v-else class="w-4 h-4">
+                                        <use :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
+                                    </svg>
+                                </div>
+                                <span>{{ node.label }}</span>
+                            </div>
+                        </template>
+                    </Treeselect>
                     <button class="button block mt-4 ml-auto mr-0" @click="transfer">
                         Transfer
                     </button>
@@ -41,6 +53,7 @@
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import { mapState } from 'vuex'
+import { collectionIconIsInline } from '../api/collection'
 export default {
     components: {
         Treeselect,
@@ -67,6 +80,16 @@ export default {
         document.querySelector('#app').addEventListener('click', this.hide, true)
     },
     methods: {
+        normalizeNode(node) {
+            return {
+                id: node.id,
+                label: node.name,
+                children: node.nested?.length > 0 ? node.nested : node.children,
+            }
+        },
+        isInline(id) {
+            return collectionIconIsInline(Number(id))
+        },
         transfer() {
             // necessary in order to copy the post instead of referencing it
             const post = JSON.parse(JSON.stringify(this.collectionMenu.post))

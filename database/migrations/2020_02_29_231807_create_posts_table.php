@@ -34,7 +34,7 @@ class CreatePostsTable extends Migration
             $table->string('color', 40)->nullable();
             $table->string('image_path')->nullable();
 
-            $table->unsignedBigInteger('order');
+            $table->unsignedBigInteger('order')->index();
 
             $table->timestamps();
             $table->softDeletes();

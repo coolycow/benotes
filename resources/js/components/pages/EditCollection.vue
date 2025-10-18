@@ -20,18 +20,32 @@
                     :options="optionsCollections"
                     :close-on-select="true"
                     :clear-on-select="true"
-                    :normalizer="
-                        (node) => {
-                            return {
-                                id: node.id,
-                                label: node.name,
-                                children:
-                                    node.nested.length > 0 ? node.nested : node.children,
-                            }
-                        }
-                    "
+                    :normalizer="normalizeNode"
                     placeholder=""
-                    class="inline-block w-80" />
+                    class="inline-block w-80">
+                    <template #value-label="{ node }">
+                        <div class="flex items-center">
+                            <div v-if="node.raw.icon_id" class="mr-2">
+                                <svg-vue v-if="isInline(node.raw.icon_id)" :icon="'glyphs/' + node.raw.icon_id" class="w-4 h-4" />
+                                <svg v-else class="w-4 h-4">
+                                    <use :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
+                                </svg>
+                            </div>
+                            <span>{{ node.label }}</span>
+                        </div>
+                    </template>
+                    <template #option-label="{ node }">
+                        <div class="flex items-center">
+                            <div v-if="node.raw.icon_id" class="mr-2">
+                                <svg-vue v-if="isInline(node.raw.icon_id)" :icon="'glyphs/' + node.raw.icon_id" class="w-4 h-4" />
+                                <svg v-else class="w-6 h-6">
+                                    <use :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
+                                </svg>
+                            </div>
+                            <span>{{ node.label }}</span>
+                        </div>
+                    </template>
+                </Treeselect>
             </div>
 
             <div class="mb-10 relative">
@@ -116,7 +130,7 @@
 <script>
 import axios from 'axios'
 import { mapState } from 'vuex'
-import { collectionIconIsInline } from './../../api/collection'
+import { collectionIconIsInline } from '../../api/collection'
 import IconPicker from '../IconPicker.vue'
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
@@ -145,6 +159,16 @@ export default {
         }
     },
     methods: {
+        normalizeNode(node) {
+            return {
+                id: node.id,
+                label: node.name,
+                children: node.nested?.length > 0 ? node.nested : node.children,
+            }
+        },
+        isInline(id) {
+            return collectionIconIsInline(Number(id))
+        },
         create() {
             axios
                 .post('/api/collections', {

@@ -45,7 +45,9 @@ class InstallCommand extends Command
             // APP_KEY
             $this->info('Generate APP_KEY:');
             $this->call('key:generate');
+            $this->line(PHP_EOL);
             $bar->advance();
+            $this->line(PHP_EOL);
 
             // jwt secret
             $this->info('Generate APP_SECRET:');
@@ -57,7 +59,6 @@ class InstallCommand extends Command
             // database fresh and migration
             $this->info('Migrate database:');
             $this->call('migrate:fresh');
-            $this->call('migrate');
             $this->line(PHP_EOL);
             $bar->advance();
             $this->line(PHP_EOL);

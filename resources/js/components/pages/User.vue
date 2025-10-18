@@ -96,8 +96,8 @@ export default {
             error: null,
             selectedTheme: null,
             themes: [
-                { id: 'default', label: 'Default' },
-                { id: 'dark', label: 'Dark' },
+                { id: 'default', label: 'Default 🌕' },
+                { id: 'dark', label: 'Dark 🌑' },
             ],
         }
     },
