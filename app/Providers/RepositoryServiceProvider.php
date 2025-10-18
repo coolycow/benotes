@@ -8,10 +8,12 @@ use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\PostTagRepositoryInterface;
 use App\Repositories\Contracts\ShareRepositoryInterface;
 use App\Repositories\Contracts\TagRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\PostRepository;
 use App\Repositories\PostTagRepository;
 use App\Repositories\ShareRepository;
 use App\Repositories\TagRepository;
+use App\Repositories\UserRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -22,6 +24,7 @@ class RepositoryServiceProvider extends ServiceProvider
         TagRepositoryInterface::class => TagRepository::class,
         PostTagRepositoryInterface::class => PostTagRepository::class,
         ShareRepositoryInterface::class => ShareRepository::class,
+        UserRepositoryInterface::class => UserRepository::class,
     ];
 
     /**

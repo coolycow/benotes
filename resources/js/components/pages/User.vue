@@ -68,6 +68,7 @@
                 <Treeselect
                     v-model="selectedTheme"
                     :options="themes"
+                    :clearable="false"
                     :close-on-select="true"
                     :clear-on-select="true"
                     placeholder=""
@@ -100,6 +101,11 @@ export default {
                 { id: 'dark', label: 'Dark 🌑' },
             ],
         }
+    },
+    watch: {
+        selectedTheme(newTheme) {
+            this.setTheme()
+        },
     },
     methods: {
         update() {
