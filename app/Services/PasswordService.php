@@ -5,7 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-class PasswordService
+readonly class PasswordService
 {
     /**
      * @param int $length

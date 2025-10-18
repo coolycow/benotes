@@ -68,7 +68,7 @@
             </router-link>
             <div class="w-full px-4 md:px-6 mb-0 mt-auto pt-12">
                 <svg-vue class="w-6 align-text-bottom" icon="logo_64x64" />
-                <span class="flex-1 ml-1 text-orange-600 text-xl font-medium">Benotes NEXT</span>
+                <span class="flex-1 ml-1 text-orange-600 text-xl font-medium text-gradient">Benotes NEXT</span>
             </div>
         </div>
     </transition>
@@ -77,7 +77,7 @@
 <script>
 import { mapState } from 'vuex'
 import axios from 'axios'
-import { collectionIconIsInline } from './../api/collection'
+import { collectionIconIsInline } from '../api/collection'
 import CollectionSidebar from './CollectionSidebar.vue'
 export default {
     name: 'Sidebar',

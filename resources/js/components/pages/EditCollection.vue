@@ -93,7 +93,7 @@
                         <input
                             v-model="token"
                             class="input flex-1 mx-1"
-                            placeholder="Collection Url" />
+                            placeholder="Token" />
                         <div
                             v-if="isSupported"
                             class="bg-gray-300 px-2 mr-1 rounded cursor-pointer"
@@ -247,16 +247,17 @@ export default {
                     },
                 })
                 .then((response) => {
-                    if (response.data.data.length === 0) {
+                    if (!response.data.data || response.data.data.length === 0) {
                         return
                     }
-                    const share = response.data.data[0]
+
+                    const share = response.data.data
                     this.share = share
                     this.token = share.token
                     this.is_active = share.is_active
                 })
                 .catch((error) => {
-                    console.log(error.response.data)
+                    console.log(error.response?.data ?? error.response ?? error)
                 })
         },
         handleShare() {

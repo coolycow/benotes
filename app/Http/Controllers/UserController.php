@@ -6,6 +6,7 @@ use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\PostSeedService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -41,8 +42,10 @@ class UserController extends Controller
     {
         $user = $this->userRepository->getById($id);;
 
-        if ($user === null) {
-            return response()->json('User not found', 404);
+        if (!$user) {
+            throw new ModelNotFoundException(
+                'User not found'
+            );
         }
 
         return response()->json(['data' => $user]);
@@ -123,7 +126,9 @@ class UserController extends Controller
         $user = $this->userRepository->getById($id);;
 
         if (!$user) {
-            return response()->json('User not found.', 404);
+            throw new ModelNotFoundException(
+                'User not found'
+            );
         }
 
         $this->authorize('delete', User::class);

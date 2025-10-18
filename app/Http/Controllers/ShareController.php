@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\SharePermissionEnum;
 use App\Http\Requests\Share\ShareIndexRequest;
 use App\Http\Requests\Share\ShareStoreRequest;
 use App\Http\Requests\Share\ShareUpdateRequest;
 use App\Repositories\Contracts\CollectionRepositoryInterface;
 use App\Repositories\Contracts\ShareRepositoryInterface;
+use App\Services\ShareService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-
-use App\Models\Share;
 use Illuminate\Http\Response;
 
 class ShareController extends Controller
 {
     public function __construct(
+        protected ShareService $shareService,
         protected ShareRepositoryInterface $shareRepository,
         protected CollectionRepositoryInterface $collectionRepository
     )
@@ -54,13 +53,12 @@ class ShareController extends Controller
             return response()->json('Collection share already exists.', Response::HTTP_BAD_REQUEST);
         }
 
-        $share = Share::query()->create([
-            'user_id' => Auth::id(),
-            'collection_id' => $request->getCollectionId(),
-            'token' => $request->getToken(),
-            'is_active' => $request->getIsActive(),
-            'permission' => SharePermissionEnum::Read
-        ]);
+        $share = $this->shareService->create(
+            Auth::id(),
+            $request->getCollectionId(),
+            $request->getToken(),
+            $request->getIsActive()
+        );
 
         return response()->json(['data' => $share], 201);
     }

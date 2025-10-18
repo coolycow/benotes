@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SharePermissionEnum;
 use App\Scopes\ShareScope;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,13 +19,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property bool $is_active
  * @property SharePermissionEnum $permission
  *
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
  * @property-read User $user
+ * @property-read Post $post
+ * @property-read Collection $collection
  */
 class Share extends Authenticatable
 {
     use HasFactory;
-
-    public $timestamps = false;
 
     /**
      * The table associated with the model.
@@ -34,8 +38,11 @@ class Share extends Authenticatable
     protected $table = 'shares';
 
     protected $casts = [
+        'tokens' => 'string',
         'is_active' => 'boolean',
         'permission' => SharePermissionEnum::class,
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -76,5 +83,21 @@ class Share extends Authenticatable
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function collection(): BelongsTo
+    {
+        return $this->belongsTo(Collection::class);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
     }
 }
