@@ -8,7 +8,7 @@
             </div>
             <div class="flex-1 mb-0 my-auto text-center">
                 <span class="text-gray-800 font-medium text-xl theme__appbar__title">{{
-                    title
+                        truncateTitle(title)
                 }}</span>
             </div>
             <div v-if="permission >= 6">
@@ -40,6 +40,12 @@ import { mapState } from 'vuex'
 export default {
     name: 'Appbar',
     methods: {
+        truncateTitle(title, maxLength = 30) {
+            if (title.length > maxLength) {
+                return title.substring(0, maxLength - 3) + '...';
+            }
+            return title;
+        },
         toggleSidebar() {
             this.$store.dispatch('toggleSidebar')
         },

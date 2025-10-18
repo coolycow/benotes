@@ -8,6 +8,7 @@ use App\Http\Requests\Share\ShareStoreRequest;
 use App\Http\Requests\Share\ShareUpdateRequest;
 use App\Repositories\Contracts\CollectionRepositoryInterface;
 use App\Repositories\Contracts\ShareRepositoryInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,6 +41,13 @@ class ShareController extends Controller
     public function store(ShareStoreRequest $request): JsonResponse
     {
         $collection = $this->collectionRepository->getById($request->getCollectionId());
+
+        if (!$collection) {
+            throw new ModelNotFoundException(
+                'Collection not found',
+            );
+        }
+
         $this->authorize('share', $collection);
 
         if ($this->shareRepository->getByCollectionId($collection->id)) {
@@ -67,14 +75,18 @@ class ShareController extends Controller
         $validatedData = $request->validated();
 
         if (!$share = $this->shareRepository->getById($id)) {
-            return response()->json('Share not found', 404);
+            throw new ModelNotFoundException(
+                'Share not found.'
+            );
         }
 
         if ($request->getCollectionId()) {
             $collection = $this->collectionRepository->getById($request->getCollectionId());
 
             if (!$collection) {
-                return response()->json('Collection not found', 404);
+                throw new ModelNotFoundException(
+                    'Collection not found',
+                );
             }
         } else {
             $collection = $this->collectionRepository->getById($share->collection_id);
@@ -99,13 +111,17 @@ class ShareController extends Controller
     {
         $share = $this->shareRepository->getById($id);;
 
-        if ($share) {
-            $this->authorize('delete', $share);
-            $share->delete();
-            return response()->json('Deleted', 204);
-        } else {
-            return response()->json('Share not found.', 404);
+        if (!$share) {
+            throw new ModelNotFoundException(
+                'Share not found.'
+            );
         }
+
+        $this->authorize('delete', $share);
+
+        $share->delete();
+
+        return response()->json('Deleted', 204);
     }
 
     /**

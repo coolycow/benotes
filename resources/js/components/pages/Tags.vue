@@ -12,7 +12,7 @@
                     :key="tag.id"
                     class="row flex px-6 py-3 theme__tags__list_item">
                     <router-link :to="'/tags/' + tag.id" class="flex-1 cursor-pointer">
-                        {{ tag.name }}
+                        {{ truncateName(tag.name) }}
                     </router-link>
                     <svg
                         class="w-5 h-5 cursor-pointer fill-current text-gray-700"
@@ -88,6 +88,12 @@ export default {
         })
     },
     methods: {
+        truncateName(name, maxLength = 30) {
+            if (name.length > maxLength) {
+                return name.substring(0, maxLength - 3) + '...';
+            }
+            return name;
+        },
         create() {
             this.$router.push('/tags/create')
         },

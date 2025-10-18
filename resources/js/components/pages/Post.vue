@@ -5,8 +5,8 @@
                 <div class="max-w-5xl mt-4" @keyup.ctrl.alt.83="keySave">
                     <input
                         v-model="title"
-                        class="block w-full text-3xl font-medium placeholder-orange-600 text-orange-600 bg-transparent outline-none"
-                        placeholder="Title"
+                        class="block w-full text-3xl font-medium placeholder-gray-400 text-orange-600 bg-transparent outline-none"
+                        placeholder="Add title"
                         tabindex="1"
                         autofocus />
                     <div class="mt-4 mb-4">
@@ -57,7 +57,7 @@
                         :options="optionsTags">
                         <template #selected-option="{ id, name }">
                             <router-link :to="'/tags/' + id">
-                                {{ name }}
+                                {{ truncateName(name) }}
                             </router-link>
                         </template>
                         <template #no-options="{ search, searching, loading }">
@@ -223,6 +223,12 @@ export default {
         this.editor.destroy()
     },
     methods: {
+        truncateName(name, maxLength = 30) {
+            if (name.length > maxLength) {
+                return name.substring(0, maxLength - 3) + '...';
+            }
+            return name;
+        },
         normalizeNode(node) {
             return {
                 id: node.id,

@@ -2,8 +2,8 @@
     <div class="py-12 px-12 md:px-40 md:pt-32 max-w-5xl">
         <div class="w-full">
             <div class="mb-10">
-                <label class="label">Name of your Tag</label>
-                <input v-model="name" placeholder="Name" autofocus class="input" />
+                <label class="label">Name of tag</label>
+                <input v-model="name" placeholder="Enter tag name (e.g., 'food', 'work', 'hobbies'" autofocus class="input" />
             </div>
         </div>
     </div>

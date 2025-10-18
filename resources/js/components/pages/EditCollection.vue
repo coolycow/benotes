@@ -10,7 +10,7 @@
 
             <div class="mb-10">
                 <label class="label">Name of Collection</label>
-                <input v-model="name" placeholder="Name" autofocus class="input" />
+                <input v-model="name" placeholder="Enter collection name (e.g., Cars, Travel, Family, Books, Projects" autofocus class="input" />
             </div>
 
             <div class="mb-10">

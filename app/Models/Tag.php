@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Observers\TagObserver;
 use App\Scopes\TagScope;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -33,6 +33,8 @@ class Tag extends Model
     public static function boot(): void
     {
         parent::boot();
+
+        static::observe(TagObserver::class);
 
         static::addGlobalScope(new TagScope);
     }
@@ -87,20 +89,5 @@ class Tag extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-
-    /**
-     * @param $value
-     * @return void
-     */
-    protected function setTitleAttribute($value): void
-    {
-        if (empty($value)) {
-            $this->attributes['title'] = null;
-            return;
-        }
-
-        $this->attributes['title'] = Str::limit($value, 255);
     }
 }

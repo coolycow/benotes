@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserPermissionEnum;
 use App\Http\Requests\Post\PostDeleteRequest;
 use App\Http\Requests\Post\PostIndexRequest;
 use App\Http\Requests\Post\PostShowRequest;
@@ -99,8 +98,10 @@ class PostController extends Controller
     {
         $post = $this->repository->getById($id, $request->getWithTags());
 
-        if ($post === null) {
-            return response()->json('Post does not exist', Response::HTTP_NOT_FOUND);
+        if (!$post) {
+            throw new ModelNotFoundException(
+                'Post not found',
+            );
         }
 
         $this->authorize('view', $post);
@@ -119,7 +120,7 @@ class PostController extends Controller
 
             if (!$collection) {
                 throw new ModelNotFoundException(
-                    'Collection does not exist',
+                    'Collection not found',
                 );
             }
         }
@@ -149,7 +150,7 @@ class PostController extends Controller
 
         if (!$post) {
             throw new ModelNotFoundException(
-                'Post does not exist',
+                'Post not found',
             );
         }
 
@@ -176,7 +177,9 @@ class PostController extends Controller
         $post = $this->repository->getById($id);
 
         if (!$post) {
-            return response()->json('Post not found.', Response::HTTP_NOT_FOUND);
+            throw new ModelNotFoundException(
+                'Post not found',
+            );
         }
 
         $this->authorize('delete', $post);

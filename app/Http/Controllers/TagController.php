@@ -7,6 +7,7 @@ use App\Http\Requests\Tag\TagStoreRequest;
 use App\Http\Requests\Tag\TagUpdateRequest;
 use App\Repositories\Contracts\TagRepositoryInterface;
 use App\Services\TagService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -39,7 +40,9 @@ class TagController extends Controller
         $tag = $this->repository->getById($id);;
 
         if (!$tag) {
-            return response()->json('Tag not found', 404);
+            throw new ModelNotFoundException(
+                'Tag not found'
+            );
         }
 
         $this->authorize('view', $tag);
@@ -76,11 +79,18 @@ class TagController extends Controller
      */
     public function update(TagUpdateRequest $request, $id): JsonResponse
     {
-        if ($this->repository->getByUserIdAndName(Auth::id(), $request->getName())) {
+        if (!$this->repository->getByUserIdAndName(Auth::id(), $request->getName())) {
             return response()->json('Tag does already exist', 400);
         }
 
         $tag = $this->repository->getById($id);
+
+        if (!$tag) {
+            throw new ModelNotFoundException(
+                'Tag not found'
+            );
+        }
+
         $this->authorize('update', $tag);
 
         return response()->json([
@@ -99,7 +109,9 @@ class TagController extends Controller
         $tag = $this->repository->getById($id);
 
         if (!$tag) {
-            return response()->json('Tag not found.', 404);
+            throw new ModelNotFoundException(
+                'Tag not found'
+            );
         }
 
         $this->authorize('delete', $tag);

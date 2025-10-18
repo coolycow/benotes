@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PostTypeEnum;
+use App\Observers\PostObserver;
 use App\Scopes\PostScope;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -54,6 +55,8 @@ class Post extends Model
     public static function boot(): void
     {
         parent::boot();
+
+        static::observe(PostObserver::class);
 
         static::addGlobalScope(new PostScope);
     }
@@ -179,19 +182,5 @@ class Post extends Model
     public function getHumanDeletedAtAttribute(): ?string
     {
         return $this->deleted_at?->diffForHumans();
-    }
-
-    /**
-     * @param $value
-     * @return void
-     */
-    protected function setTitleAttribute($value): void
-    {
-        if (empty($value)) {
-            $this->attributes['title'] = null;
-            return;
-        }
-
-        $this->attributes['title'] = Str::limit($value, 255);
     }
 }

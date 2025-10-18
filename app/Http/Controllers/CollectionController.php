@@ -46,7 +46,9 @@ class CollectionController extends Controller
         $collection = $this->repository->getById($id);;
 
         if (!$collection) {
-            return response()->json('Collection not found', 404);
+            throw new ModelNotFoundException(
+                'Collection not found',
+            );
         }
 
         $this->authorize('view', $collection);
@@ -67,7 +69,7 @@ class CollectionController extends Controller
 
             if (!$collection) {
                 throw new ModelNotFoundException(
-                    'Collection does not exist',
+                    'Collection not found',
                 );
             }
 
@@ -93,6 +95,13 @@ class CollectionController extends Controller
     public function update(CollectionUpdateRequest $request, $id): JsonResponse
     {
         $collection = $this->repository->getById($id);
+
+        if (!$collection) {
+            throw new ModelNotFoundException(
+                'Collection not found'
+            );
+        }
+
         $this->authorize('update', $collection);
 
         if ($request->getParentId()) {
@@ -128,7 +137,9 @@ class CollectionController extends Controller
         $collection = $this->repository->getById($id);;
 
         if (!$collection) {
-            return response()->json('Collection not found.', 400);
+            throw new ModelNotFoundException(
+                'Collection not found',
+            );
         }
 
         $this->authorize('delete', $collection);
