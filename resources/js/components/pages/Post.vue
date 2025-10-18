@@ -15,6 +15,7 @@
                             :options="optionsCollections"
                             :close-on-select="true"
                             :clear-on-select="true"
+                            :clearable="false"
                             :normalizer="normalizeNode"
                             placeholder=""
                             :tabIndex="2"
@@ -232,6 +233,11 @@ export default {
         isInline(id) {
             return collectionIconIsInline(Number(id))
         },
+        isEmptyContent(content) {
+            const stripped = content.replace(/<[^>]*>/g, '');
+            const trimmed = stripped.replace(/\s+/g, '');
+            return trimmed.length === 0;
+        },
         async save() {
             let content = this.editor.getHTML()
             if (content === '' || this.currentCollection === null) {
@@ -243,6 +249,15 @@ export default {
             const matches = content.match(/^<p>(?<content>.(?:(?!<p>)(?!<\/p>).)*)<\/p>$/)
             if (matches !== null) {
                 content = matches[1]
+            }
+
+            if (this.isEmptyContent(content)) {
+                this.$store.dispatch('notification/setNotification', {
+                    type: 'error',
+                    title: 'Empty content',
+                    description: 'Content can not be empty or consist of only spaces',
+                })
+                return
             }
 
             if (this.isNewPost) {
@@ -263,10 +278,12 @@ export default {
                         }
                     })
                     .catch((error) => {
+                        console.log(error.response.data)
                         this.$store.dispatch('notification/setNotification', {
                             type: 'error',
                             title: 'Error ' + error.response.status,
-                            description: 'Post could not be created.',
+                            description: error.response.data.errors?.content?.[0]
+                                ?? 'Post could not be created.',
                         })
                     })
                 this.$router.push({

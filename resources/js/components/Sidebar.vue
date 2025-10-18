@@ -53,6 +53,7 @@
                     <svg-vue icon="remix/folder-unknow-fill" class="w-4 fill-current align-text-bottom mr-2" />
                     <span class="align-middle text-gray-700 theme__sidebar__label">Uncategorized</span>
                 </router-link>
+
                 <span class="mb-2 md:px-8 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead">
                     Collections
                 </span>

@@ -66,17 +66,22 @@ class Handler extends ExceptionHandler
     {
         if ($e instanceof TokenExpiredException) {
             return response()->json('Token has expired', 401);
-        } else if ($e instanceof TokenBlacklistedException || $e instanceof TokenInvalidException) {
+        } elseif ($e instanceof TokenBlacklistedException || $e instanceof TokenInvalidException) {
             return response()->json('Token is invalid', 401);
-        } else if ($e instanceof NotWritableException) {
+        } elseif ($e instanceof NotWritableException) {
             return response()->json('Storage path not writable.', 403);
-        } else if ($e instanceof AuthorizationException) {
+        } elseif ($e instanceof AuthorizationException) {
             return response()->json('This action is unauthorized.', 403);
-        } else if ($e instanceof ModelNotFoundException) {
+        } elseif ($e instanceof ModelNotFoundException) {
             return response()->json(
                 str_replace('App\\', '', $e->getModel()) . ' not found.',
                 404
             );
+        } elseif ($e instanceof ValidationException) {
+            return response()->json([
+                'message' => __('Validation error'),
+                'errors' => $e->validator->getMessageBag()
+            ], 422);
         }
 
         return parent::render($request, $e);

@@ -170,6 +170,15 @@ export default {
             return collectionIconIsInline(Number(id))
         },
         create() {
+            if (this.name.trim() === '') {
+                this.$store.dispatch('notification/setNotification', {
+                    type: 'error',
+                    title: 'Empty name',
+                    description: 'Name can not be empty or consist of only spaces',
+                })
+                return
+            }
+
             axios
                 .post('/api/collections', {
                     name: this.name,
@@ -186,6 +195,12 @@ export default {
                 })
                 .catch((error) => {
                     console.log(error.response.data)
+                    this.$store.dispatch('notification/setNotification', {
+                        type: 'error',
+                        title: 'Error ' + error.response.status,
+                        description: error.response.data.errors?.content?.[0]
+                            ?? 'Collection could not be created.',
+                    })
                 })
         },
         update() {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Post;
 
+use App\Rules\NotEmptyContentRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PostStoreRequest extends FormRequest
@@ -25,7 +26,11 @@ class PostStoreRequest extends FormRequest
     {
         return [
             'title' => 'string|nullable',
-            'content' => 'required|string',
+            'content' => [
+                'required',
+                'string',
+                new NotEmptyContentRule
+            ],
             'collection_id' => 'integer|nullable',
             'description' => 'string|nullable',
             'tags' => 'array|nullable',

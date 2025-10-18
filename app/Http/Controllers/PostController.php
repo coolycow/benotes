@@ -122,10 +122,6 @@ class PostController extends Controller
                     'Collection does not exist',
                 );
             }
-
-            if (Auth::id() !== $collection->user_id) {
-                return response()->json('Not authorized', Response::HTTP_FORBIDDEN);
-            }
         }
 
         $post = $this->service->store(
@@ -152,7 +148,9 @@ class PostController extends Controller
         $post = Post::withTrashed()->find($id);
 
         if (!$post) {
-            return response()->json('Post not found.', Response::HTTP_NOT_FOUND);
+            throw new ModelNotFoundException(
+                'Post does not exist',
+            );
         }
 
         $this->authorize('update', $post);

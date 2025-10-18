@@ -9,6 +9,7 @@ use App\Http\Requests\Collection\CollectionStoreRequest;
 use App\Http\Requests\Collection\CollectionUpdateRequest;
 use App\Repositories\Contracts\CollectionRepositoryInterface;
 use App\Services\CollectionService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -65,7 +66,9 @@ class CollectionController extends Controller
             $collection = $this->repository->getById($request->getParentId());;
 
             if (!$collection) {
-                return response()->json('Collection not found', 404);
+                throw new ModelNotFoundException(
+                    'Collection does not exist',
+                );
             }
 
             $this->authorize('inherit', $collection);
