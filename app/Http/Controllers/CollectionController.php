@@ -31,7 +31,7 @@ class CollectionController extends Controller
     public function index(CollectionIndexRequest $request): JsonResponse
     {
         $collections = $request->getNested()
-            ? $this->repository->getNested(Auth::id())
+            ? $this->repository->getWithNested(Auth::id())
             : $this->repository->getByUserId(Auth::id());
 
         return response()->json(['data' => $collections]);

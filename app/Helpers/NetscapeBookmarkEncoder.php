@@ -47,7 +47,7 @@ readonly class NetscapeBookmarkEncoder
             "\n" .
             "<DL><p>\n";
 
-        $collections = $this->collectionRepository->getNested($this->user_id);
+        $collections = $this->collectionRepository->getWithNested($this->user_id);
 
         if ($this->postRepository->hasUncategorizedWithType($this->user_id, PostTypeEnum::Link)) {
             $collections->prepend((object) ['name' => 'Uncategorized', 'id' => null]);

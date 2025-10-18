@@ -10603,7 +10603,9 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         }
       });
     }
-    this.$store.dispatch('collection/fetchCollections', {}).then(function () {
+    this.$store.dispatch('collection/fetchCollections', {
+      nested: true
+    }).then(function () {
       _this3.optionsCollections = _this3.optionsCollections.concat(_this3.collections);
     });
     navigator.permissions.query({

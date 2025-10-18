@@ -367,7 +367,11 @@ export default {
                 },
             })
         }
-        this.$store.dispatch('collection/fetchCollections', {}).then(() => {
+        // nested: true - обязательно! Иначе вся логика ломается.
+        // В исходном контролере была заведомо ошибка перевода в bool и поэтому nested всегда был true.
+        // После исправления контролера и использования корректного nested происходят ошибки:
+        // Ломается меню коллекций в сайдбаре и селекторах на странице создания и редактирования коллекций.
+        this.$store.dispatch('collection/fetchCollections', {nested: true}).then(() => {
             this.optionsCollections = this.optionsCollections.concat(this.collections)
         })
         navigator.permissions

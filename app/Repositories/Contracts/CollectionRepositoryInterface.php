@@ -23,5 +23,5 @@ interface CollectionRepositoryInterface
      * @param int $userId
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getNested(int $userId): \Illuminate\Database\Eloquent\Collection;
+    public function getWithNested(int $userId): \Illuminate\Database\Eloquent\Collection;
 }
