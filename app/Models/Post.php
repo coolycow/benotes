@@ -41,6 +41,8 @@ use Illuminate\Support\Str;
  *
  * @property-read User $user
  * @property Collection|Tag[] $tags // Важно делать именно так, чтобы правильно работал трансфер!!!
+ *
+ * @mixin Model
  */
 class Post extends Model
 {
@@ -177,5 +179,19 @@ class Post extends Model
     public function getHumanDeletedAtAttribute(): ?string
     {
         return $this->deleted_at?->diffForHumans();
+    }
+
+    /**
+     * @param $value
+     * @return void
+     */
+    protected function setTitleAttribute($value): void
+    {
+        if (empty($value)) {
+            $this->attributes['title'] = null;
+            return;
+        }
+
+        $this->attributes['title'] = Str::limit($value, 255);
     }
 }

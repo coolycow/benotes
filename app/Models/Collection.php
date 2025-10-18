@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -120,5 +121,19 @@ class Collection extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @param $value
+     * @return void
+     */
+    protected function setTitleAttribute($value): void
+    {
+        if (empty($value)) {
+            $this->attributes['title'] = null;
+            return;
+        }
+
+        $this->attributes['title'] = Str::limit($value, 255);
     }
 }

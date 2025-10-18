@@ -2,8 +2,8 @@
 
 namespace App\Enums;
 
-enum PostTypeEnum: int
+enum PostTypeEnum: string
 {
-    case Text = 1;
-    case Link = 2;
+    case Text = 'text';
+    case Link = 'link';
 }

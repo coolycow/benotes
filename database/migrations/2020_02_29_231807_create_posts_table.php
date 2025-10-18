@@ -22,15 +22,19 @@ class CreatePostsTable extends Migration
             $table->foreignId('collection_id')->nullable()
                 ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
 
-            $table->text('content');
-            $table->tinyInteger('type');
+            $table->string('type', 20)->index();
+
             $table->text('url')->nullable();
+            $table->text('base_url')->nullable();
+
             $table->string('title')->nullable();
             $table->text('description')->nullable();
+            $table->text('content');
+
             $table->string('color', 40)->nullable();
             $table->string('image_path')->nullable();
-            $table->string('base_url')->nullable();
-            $table->unsignedSmallInteger('order');
+
+            $table->unsignedBigInteger('order');
 
             $table->timestamps();
             $table->softDeletes();

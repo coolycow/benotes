@@ -43,16 +43,19 @@ class InstallCommand extends Command
             $this->line(PHP_EOL);
 
             // APP_KEY
+            $this->info('Generate APP_KEY:');
             $this->call('key:generate');
             $bar->advance();
 
             // jwt secret
+            $this->info('Generate APP_SECRET:');
             $this->call('jwt:secret');
             $this->line(PHP_EOL);
             $bar->advance();
             $this->line(PHP_EOL);
 
             // database fresh and migration
+            $this->info('Migrate database:');
             $this->call('migrate:fresh');
             $this->call('migrate');
             $this->line(PHP_EOL);
@@ -60,6 +63,7 @@ class InstallCommand extends Command
             $this->line(PHP_EOL);
 
             // create storage link
+            $this->info('Create storage link:');
             $this->call('storage:link');
             $this->line(PHP_EOL);
             $bar->advance();

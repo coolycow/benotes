@@ -27,6 +27,8 @@ class CreateSharesTable extends Migration
             $table->text('token');
             $table->unsignedTinyInteger('permission')->default(4);
             $table->boolean('is_active');
+
+            $table->timestamps();
         });
     }
 

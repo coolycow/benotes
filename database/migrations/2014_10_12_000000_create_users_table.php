@@ -21,7 +21,7 @@ class CreateUsersTable extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('permission')->default(UserPermissionEnum::Api->value);
-            $table->string('theme')->default(ThemeEnum::Default->value);
+            $table->string('theme', 20)->default(ThemeEnum::Default->value);
             $table->timestamps();
         });
     }

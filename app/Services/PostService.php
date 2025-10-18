@@ -235,7 +235,7 @@ readonly class PostService
 
         if (empty($matches)) {
             $info['type'] = PostTypeEnum::Text;
-        } elseif (strlen($stripped_content) > strlen($matches[0])) { // contains more than just a link
+        } elseif (strlen($stripped_content) > strlen($matches[0])) {
             $info['type'] = PostTypeEnum::Text;
         } elseif ($stripped_content != $matches[0]) {
             $info['type'] = PostTypeEnum::Text;
@@ -288,9 +288,9 @@ readonly class PostService
 
         if (empty($html) || !Str::contains($content_type, 'text/html')) {
             return [
-                'url'         => substr($url, 0, 512),
-                'base_url'    => substr($base_url, 0, 255),
-                'title'       => substr($url, 0, 255),
+                'url'         => $url,
+                'base_url'    => $base_url,
+                'title'       => Str::limit($url, 255),
                 'description' => null,
                 'color'       => null,
                 'image_path'  => null,
@@ -334,9 +334,9 @@ readonly class PostService
         }
 
         return [
-            'url'         => substr($url, 0, 512),
-            'base_url'    => substr($base_url, 0, 255),
-            'title'       => substr($title, 0, 255),
+            'url'         => $url,
+            'base_url'    => $base_url,
+            'title'       => Str::limit($title, 255),
             'description' => $description ?? null,
             'color'       => $color ?? null,
             'image_path'  => $image_path ?? null,

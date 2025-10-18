@@ -16,7 +16,7 @@ class ShareScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        if (app()->runningInConsole() || !auth()->check()) {
+        if (app()->runningInConsole()) {
             return;
         }
 

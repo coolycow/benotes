@@ -14,25 +14,13 @@ class ResetPassword extends ResetPasswordNotification
 {
     use Queueable;
 
-    public $token;
-
-    /**
-     * Create a new notification instance.
-     *
-     * @return void
-     */
-    public function __construct($token)
-    {
-        $this->token = $token;
-    }
-
     /**
      * Get the notification's delivery channels.
      *
      * @param  mixed  $notifiable
      * @return array
      */
-    public function via($notifiable)
+    public function via(mixed $notifiable): array
     {
         return ['mail'];
     }
@@ -41,9 +29,9 @@ class ResetPassword extends ResetPasswordNotification
      * Get the mail representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
             ->subject(Lang::get('Reset Password Notification'))
@@ -65,7 +53,7 @@ class ResetPassword extends ResetPasswordNotification
      * @param  mixed  $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toArray(mixed $notifiable): array
     {
         return [
             //
