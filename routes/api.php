@@ -54,7 +54,6 @@ Route::group([
     Route::patch('collections/{id}', [CollectionController::class, 'update']);
     Route::delete('collections/{id}', [CollectionController::class, 'destroy']);
 
-
     Route::get('shares/public', [ShareController::class, 'index']);
     Route::post('shares/public', [ShareController::class, 'store']);
     Route::patch('shares/public/{id}', [ShareController::class, 'update']);
