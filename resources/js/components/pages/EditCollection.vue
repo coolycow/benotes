@@ -10,7 +10,11 @@
 
             <div class="mb-10">
                 <label class="label">Name of Collection</label>
-                <input v-model="name" placeholder="Enter collection name (e.g., Cars, Travel, Family, Books, Projects" autofocus class="input" />
+                <input
+                    v-model="name"
+                    placeholder="Enter collection name (e.g., Cars, Travel, Family, Books, Projects"
+                    autofocus
+                    class="input" />
             </div>
 
             <div class="mb-10">
@@ -26,9 +30,13 @@
                     <template #value-label="{ node }">
                         <div class="flex items-center">
                             <div v-if="node.raw.icon_id" class="mr-2">
-                                <svg-vue v-if="isInline(node.raw.icon_id)" :icon="'glyphs/' + node.raw.icon_id" class="w-4 h-4" />
+                                <svg-vue
+                                    v-if="isInline(node.raw.icon_id)"
+                                    :icon="'glyphs/' + node.raw.icon_id"
+                                    class="w-4 h-4" />
                                 <svg v-else class="w-4 h-4">
-                                    <use :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
+                                    <use
+                                        :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
                                 </svg>
                             </div>
                             <span>{{ node.label }}</span>
@@ -37,9 +45,13 @@
                     <template #option-label="{ node }">
                         <div class="flex items-center">
                             <div v-if="node.raw.icon_id" class="mr-2">
-                                <svg-vue v-if="isInline(node.raw.icon_id)" :icon="'glyphs/' + node.raw.icon_id" class="w-4 h-4" />
+                                <svg-vue
+                                    v-if="isInline(node.raw.icon_id)"
+                                    :icon="'glyphs/' + node.raw.icon_id"
+                                    class="w-4 h-4" />
                                 <svg v-else class="w-6 h-6">
-                                    <use :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
+                                    <use
+                                        :xlink:href="'/glyphs.svg#' + node.raw.icon_id" />
                                 </svg>
                             </div>
                             <span>{{ node.label }}</span>
@@ -74,43 +86,38 @@
                 </transition>
             </div>
 
-            <div v-if="!isNew" class="mt-16 mb-16">
-                <label class="label inline-block">Collection Url</label>
-                <button
-                    class="switch"
-                    :class="[
-                        is_active
-                            ? 'bg-orange-600 border-orange-600 text-white'
-                            : 'border-gray-600 text-gray-600',
-                    ]"
-                    @click="is_active = !is_active">
-                    {{ switchValue }}
-                </button>
+            <div v-if="!isNew" class="mt-8 mb-8">
+                <label class="label mb-2">Shared With Users</label>
 
-                <div class="w-full mt-4 md:mt-0 md:flex">
-                    <input class="input readonly" :value="domain" readonly />
-                    <div class="flex flex-1 mt-1 md:mt-0">
-                        <input
-                            v-model="token"
-                            class="input flex-1 mx-1"
-                            placeholder="Token" />
-                        <div
-                            v-if="isSupported"
-                            class="bg-gray-300 px-2 mr-1 rounded cursor-pointer"
-                            @click="copy">
-                            <svg-vue class="w-6 mt-2.5" icon="material/link" />
-                        </div>
-                        <div
-                            class="px-2 bg-gray-300 rounded cursor-pointer"
-                            @click="generate()">
-                            <svg-vue class="w-6 mt-2.5" icon="material/autorenew" />
-                        </div>
-                    </div>
+                <div v-for="(share, index) in sharedUsers" :key="index" class="mb-4 flex space-x-4 items-center">
+                    <Treeselect
+                        :multiple="false"
+                        :async="true"
+                        :load-options="loadUsers"
+                        v-model="share.guest_id"
+                        placeholder="Select user"
+                        class="w-80"
+                        :clearable="false"
+                        value-consists-of="LEAF_PRIORITY"
+                        :default-options="userOptions"
+                    >
+                    </Treeselect>
+
+                    <Treeselect
+                        v-model="share.permission"
+                        :options="permissions"
+                        placeholder="Select permission"
+                        class="w-48"
+                        :clearable="false"/>
+
+                    <button @click="removeShare(index)" class="text-red-600 hover:text-red-800 font-bold">
+                        &times;
+                    </button>
                 </div>
 
-                <p class="mt-4">
-                    Make this collection publicly available by visiting the specified URL.
-                </p>
+                <button @click="addShare" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Add User
+                </button>
             </div>
 
             <div v-if="!isNew" class="mb-14 py-6 px-6 bg-red-400 rounded">
@@ -134,6 +141,7 @@ import { collectionIconIsInline } from '../../api/collection'
 import IconPicker from '../IconPicker.vue'
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+import { ASYNC_SEARCH } from '@riophae/vue-treeselect'
 export default {
     components: {
         IconPicker,
@@ -142,11 +150,8 @@ export default {
     props: ['id', 'isNew'],
     data() {
         return {
+            // Collection
             name: '',
-            token: '',
-            share: null,
-            is_active: false,
-            switch: this.is_active ? 'active' : 'inactive',
             headline: this.isNew ? 'Create Collection' : 'Collection Settings',
             description: this.isNew
                 ? 'Specify a name for your new collection.'
@@ -156,6 +161,14 @@ export default {
             showPicker: false,
             optionsCollections: [],
             parentCollection: null,
+
+            // Shares
+            sharedUsers: [],
+            userOptions: [],
+            permissions: [
+                { id: '1', label: 'Read' },
+                { id: '2', label: 'Read & Write' }
+            ],
         }
     },
     methods: {
@@ -198,8 +211,9 @@ export default {
                     this.$store.dispatch('notification/setNotification', {
                         type: 'error',
                         title: 'Error ' + error.response.status,
-                        description: error.response.data.errors?.content?.[0]
-                            ?? 'Collection could not be created.',
+                        description:
+                            error.response.data.errors?.content?.[0] ??
+                            'Collection could not be created.',
                     })
                 })
         },
@@ -210,7 +224,7 @@ export default {
                 parentId: this.parentCollection,
                 iconId: this.iconId,
             })
-            this.handleShare()
+            this.saveShares()
             this.$router.push({ path: '/c/' + this.id })
         },
         deleteCollection() {
@@ -225,73 +239,60 @@ export default {
             })
             this.$router.push({ path: '/' })
         },
-        copy(event) {
-            navigator.clipboard.writeText(this.domain + this.token).catch((error) => {
-                console.log(error)
+        addShare() {
+            this.sharedUsers.push({ guest_id: null, label: null, permission: '1' });
+        },
+        removeShare(index) {
+            this.sharedUsers.splice(index, 1);
+        },
+        loadUsers({ action, searchQuery, callback }) {
+            if (action === ASYNC_SEARCH && searchQuery.length > 2) {
+                axios.get('/api/users/search', {
+                    params: { email: searchQuery },
+                })
+                    .then(response => {
+                        const options = (response.data.data || []).map(user => ({
+                            id: user.id,
+                            label: user.email,
+                        }));
+                        callback(null, options);
+                    })
+                    .catch(error => {
+                        console.error('Error loading users for Treeselect:', error);
+                        callback(error);
+                    });
+            }
+        },
+        saveShares() {
+            axios.post('/api/shares', {
+                collection_id: this.id,
+                guests: this.sharedUsers.filter(
+                    share => share.guest_id !== null
+                ),
+            }).catch(console.error);
+        },
+        loadExistingShares() {
+            axios.get('/api/shares/', {
+                params: { collection_id: this.id }
             })
-        },
-        generate() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-            const charsLength = chars.length
-            let value = ''
-            for (let i = 0; i < 32; i++) {
-                value += chars.charAt(Math.floor(Math.random() * charsLength))
-            }
-            this.token = value
-        },
-        getShares() {
-            axios
-                .get('/api/shares/', {
-                    params: {
-                        collection_id: this.id,
-                    },
-                })
-                .then((response) => {
-                    if (!response.data.data || response.data.data.length === 0) {
-                        return
+                .then(response => {
+                    if (response.data.data) {
+                        this.userOptions = response.data.data.map(share => ({
+                            id: share.guest_id,
+                            label: share.email,
+                            permission: share.permission,
+                        }));
+                        this.sharedUsers = response.data.data.map(share => ({
+                            guest_id: share.guest_id,
+                            email: share.email,
+                            label: share.email,
+                            permission: share.permission,
+                        }));
                     }
-
-                    const share = response.data.data
-                    this.share = share
-                    this.token = share.token
-                    this.is_active = share.is_active
                 })
-                .catch((error) => {
-                    console.log(error.response?.data ?? error.response ?? error)
-                })
-        },
-        handleShare() {
-            if (this.share === null && this.is_active === false) {
-                return
-            }
-
-            if (this.is_active && this.token !== '') {
-                if (this.share) {
-                    axios
-                        .patch('/api/shares/' + this.share.id, {
-                            token: this.token,
-                            collection_id: this.id,
-                            is_active: this.is_active,
-                        })
-                        .catch((error) => {
-                            console.log(error.response.data)
-                        })
-                } else {
-                    axios
-                        .post('/api/shares', {
-                            token: this.token,
-                            collection_id: this.id,
-                            is_active: this.is_active,
-                        })
-                        .catch((error) => {
-                            console.log(error.response.data)
-                        })
-                }
-            } else if (!this.is_active && this.share) {
-                axios.delete('/api/shares/' + this.share.id).catch((error) => {
-                    console.log(error.response.data)
-                })
-            }
+                .catch(error => {
+                    console.error('Failed to load shares:', error);
+                });
         },
         openPicker() {
             this.showPicker = true
@@ -318,16 +319,6 @@ export default {
         collectionIconIsInline,
     },
     computed: {
-        switchValue() {
-            if (this.is_active) {
-                return 'active'
-            } else {
-                return 'inactive'
-            }
-        },
-        domain() {
-            return origin + '/s?token='
-        },
         ...mapState('collection', ['collections']),
     },
     created() {
@@ -336,18 +327,21 @@ export default {
                 this.$router.push({ path: '/' })
                 return
             }
+
             axios
                 .get('/api/collections/' + this.id)
                 .then((response) => {
                     const collection = response.data.data
+
                     this.name = collection.name
                     this.iconId = collection.icon_id
                     this.parentCollection = collection.parent_id
+
+                    this.loadExistingShares();
                 })
                 .catch((error) => {
                     console.log(error.response.data)
                 })
-            this.getShares()
 
             this.$store.dispatch('appbar/setAppbar', {
                 title: 'Edit Collection',
@@ -371,7 +365,7 @@ export default {
         // В исходном контролере была заведомо ошибка перевода в bool и поэтому nested всегда был true.
         // После исправления контролера и использования корректного nested происходят ошибки:
         // Ломается меню коллекций в сайдбаре и селекторах на странице создания и редактирования коллекций.
-        this.$store.dispatch('collection/fetchCollections', {nested: true}).then(() => {
+        this.$store.dispatch('collection/fetchCollections', { nested: true }).then(() => {
             this.optionsCollections = this.optionsCollections.concat(this.collections)
         })
         navigator.permissions

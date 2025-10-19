@@ -7,6 +7,7 @@ use App\Enums\UserPermissionEnum;
 use App\Scopes\UserScope;
 use Carbon\Carbon;
 use http\Exception\UnexpectedValueException;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +30,7 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
  * @property-read bool $is_admin
  *
  * @property-read \Illuminate\Database\Eloquent\Collection|Collection[] $collections
+ * @property-read \Illuminate\Database\Eloquent\Collection|Collection[] $sharedCollections
  * @property-read \Illuminate\Database\Eloquent\Collection|Post[] $posts
  * @property-read \Illuminate\Database\Eloquent\Collection|Share[] $shares
  * @property-read \Illuminate\Database\Eloquent\Collection|Tag[] $tags
@@ -155,6 +157,19 @@ class User extends Authenticatable implements JWTSubject
     public function collections(): HasMany
     {
         return $this->hasMany(Collection::class);
+    }
+
+    /**
+     * @return BelongsToMany
+     */
+    public function sharedCollections(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Collection::class,
+            'shares',
+            'user_id',
+            'collection_id'
+        )->withPivot('permission')->withTimestamps();
     }
 
     /**

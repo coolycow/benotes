@@ -56,6 +56,7 @@ Route::group([
     Route::delete('collections/{id}', [CollectionController::class, 'destroy']);
 
     Route::get('users', [UserController::class, 'index']);
+    Route::get('users/search', [UserController::class, 'search']);
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::post('users', [UserController::class, 'store']);
     Route::patch('users/{id}', [UserController::class, 'update']);

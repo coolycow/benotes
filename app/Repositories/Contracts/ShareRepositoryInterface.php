@@ -29,7 +29,7 @@ interface ShareRepositoryInterface
     /**
      * @param int $userId
      * @param int $collectionId
-     * @return Share|Model|null
+     * @return Collection
      */
-    public function getByUserIdAndCollectionId(int $userId, int $collectionId): Share|Model|null;
+    public function getByUserIdAndCollectionId(int $userId, int $collectionId): Collection;
 }

@@ -50,13 +50,13 @@ class ShareRepository extends BaseRepository implements ShareRepositoryInterface
     /**
      * @param int $userId
      * @param int $collectionId
-     * @return Share|Model|null
+     * @return Collection
      */
-    public function getByUserIdAndCollectionId(int $userId, int $collectionId): Share|Model|null
+    public function getByUserIdAndCollectionId(int $userId, int $collectionId): Collection
     {
         return $this->startCondition()
             ->where('user_id', $userId)
             ->where('collection_id', $collectionId)
-            ->first();
+            ->get();
     }
 }

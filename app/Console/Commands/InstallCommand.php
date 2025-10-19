@@ -71,7 +71,7 @@ class InstallCommand extends Command
             $this->line(PHP_EOL);
         }
 
-        // database seeding
+        // Create admin
         $this->info('Create your Admin account:');
         $email = $this->ask('Email');
 
@@ -93,6 +93,32 @@ class InstallCommand extends Command
             'name' => strstr($email, '@', true),
             'password' => app(PasswordService::class)->generateHashedPassword(),
             'permission' => UserPermissionEnum::Admin
+        ]);
+
+        app(PostSeedService::class)->seedIntroData($user->getKey());
+
+        // Create user
+        $this->info('Create your user account:');
+        $email = $this->ask('Email');
+
+        $validator = Validator::make([
+            'email' => $email
+        ], [
+            'email' => 'email',
+        ]);
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->all() as $error) {
+                $this->error($error);
+            }
+            return;
+        }
+
+        $user = User::query()->create([
+            'email' => $email,
+            'name' => strstr($email, '@', true),
+            'password' => app(PasswordService::class)->generateHashedPassword(),
+            'permission' => UserPermissionEnum::Api
         ]);
 
         app(PostSeedService::class)->seedIntroData($user->getKey());

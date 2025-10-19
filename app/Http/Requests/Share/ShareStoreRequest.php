@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Share;
 
+use App\Enums\SharePermissionEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class ShareStoreRequest extends FormRequest
 {
@@ -24,18 +26,11 @@ class ShareStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => 'required|string',
             'collection_id' => 'required|integer',
-            'is_active' => 'required|boolean'
+            'guests' => 'array|nullable',
+            'guests.*.guest_id' => 'integer|exists:users,id',
+            'guests.*.permission' => new Enum(SharePermissionEnum::class),
         ];
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken(): string
-    {
-        return $this->input('token');
     }
 
     /**
@@ -47,10 +42,10 @@ class ShareStoreRequest extends FormRequest
     }
 
     /**
-     * @return bool
+     * @return array
      */
-    public function getIsActive(): bool
+    public function getGuests(): array
     {
-        return $this->input('is_active');
+        return $this->input('guests', []);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserSearchRequest;
 use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -24,6 +25,9 @@ class UserController extends Controller
         //
     }
 
+    /**
+     * @return JsonResponse
+     */
     public function index(): JsonResponse
     {
         if (!Auth::check() || !Auth::user()->isAdmin()) {
@@ -31,6 +35,21 @@ class UserController extends Controller
         }
 
         $users = User::all();
+        return response()->json(['data' => $users]);
+    }
+
+    /**
+     * @param UserSearchRequest $request
+     * @return JsonResponse
+     */
+    public function search(UserSearchRequest $request): JsonResponse
+    {
+        if (!Auth::check()) {
+            return response()->json('Permission denied', 403);
+        }
+
+        $users = $this->userRepository->searchByEmail($request->getEmail(), [Auth::user()->email]);
+
         return response()->json(['data' => $users]);
     }
 

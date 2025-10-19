@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\SharePermissionEnum;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -15,20 +16,21 @@ class CreateSharesTable extends Migration
     {
         Schema::create('shares', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('user_id')
                 ->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
 
-            $table->foreignId('collection_id')->nullable()
+            $table->foreignId('guest_id')
+                ->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
+
+            $table->foreignId('collection_id')
                 ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
 
-            $table->foreignId('post_id')->nullable()
-                ->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-
-            $table->text('token');
-            $table->unsignedTinyInteger('permission')->default(4);
-            $table->boolean('is_active');
+            $table->unsignedTinyInteger('permission')->default(SharePermissionEnum::Read->value);
 
             $table->timestamps();
+
+            $table->unique(['user_id', 'guest_id', 'collection_id']);
         });
     }
 

@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @property-read User $user
  * @property-read \Illuminate\Database\Eloquent\Collection|Collection[] $nested
+ * @property-read \Illuminate\Database\Eloquent\Collection|Share[] $shares
  */
 class Collection extends Model
 {
@@ -123,5 +124,13 @@ class Collection extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function shares(): HasMany
+    {
+        return $this->hasMany(Share::class);
     }
 }

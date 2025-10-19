@@ -11,19 +11,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property int $id
- * @property int|null $user_id
- * @property int|null $collection_id
- * @property int|null $post_id
+ * @property int $user_id
+ * @property int guest_id
+ * @property int $collection_id
  *
- * @property string $token
- * @property bool $is_active
  * @property SharePermissionEnum $permission
  *
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * @property-read User $user
- * @property-read Post $post
+ * @property-read User $guest
  * @property-read Collection $collection
  */
 class Share extends Authenticatable
@@ -38,8 +36,6 @@ class Share extends Authenticatable
     protected $table = 'shares';
 
     protected $casts = [
-        'tokens' => 'string',
-        'is_active' => 'boolean',
         'permission' => SharePermissionEnum::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -52,9 +48,8 @@ class Share extends Authenticatable
      */
     protected $fillable = [
         'user_id',
-        'token',
+        'guest_id',
         'collection_id',
-        'is_active',
         'permission',
     ];
 
@@ -65,6 +60,10 @@ class Share extends Authenticatable
      */
     protected $hidden = [
         '',
+    ];
+
+    protected $appends = [
+        'email'
     ];
 
     /**
@@ -88,16 +87,24 @@ class Share extends Authenticatable
     /**
      * @return BelongsTo
      */
+    public function guest(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo
+     */
     public function collection(): BelongsTo
     {
         return $this->belongsTo(Collection::class);
     }
 
     /**
-     * @return BelongsTo
+     * @return string
      */
-    public function post(): BelongsTo
+    public function getEmailAttribute(): string
     {
-        return $this->belongsTo(Post::class);
+        return $this->guest->email;
     }
 }

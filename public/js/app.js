@@ -10383,6 +10383,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
 
 
 
+
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   components: {
     IconPicker: _IconPicker_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
@@ -10391,18 +10392,25 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
   props: ['id', 'isNew'],
   data: function data() {
     return {
+      // Collection
       name: '',
-      token: '',
-      share: null,
-      is_active: false,
-      "switch": this.is_active ? 'active' : 'inactive',
       headline: this.isNew ? 'Create Collection' : 'Collection Settings',
       description: this.isNew ? 'Specify a name for your new collection.' : "Update your collection's title and public available URL.",
       isSupported: null,
       iconId: null,
       showPicker: false,
       optionsCollections: [],
-      parentCollection: null
+      parentCollection: null,
+      // Shares
+      sharedUsers: [],
+      userOptions: [],
+      permissions: [{
+        id: '1',
+        label: 'Read'
+      }, {
+        id: '2',
+        label: 'Read & Write'
+      }]
     };
   },
   methods: {
@@ -10457,7 +10465,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         parentId: this.parentCollection,
         iconId: this.iconId
       });
-      this.handleShare();
+      this.saveShares();
       this.$router.push({
         path: '/c/' + this.id
       });
@@ -10476,66 +10484,74 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         path: '/'
       });
     },
-    copy: function copy(event) {
-      navigator.clipboard.writeText(this.domain + this.token)["catch"](function (error) {
-        console.log(error);
+    addShare: function addShare() {
+      this.sharedUsers.push({
+        guest_id: null,
+        label: null,
+        permission: '1'
       });
     },
-    generate: function generate() {
-      var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      var charsLength = chars.length;
-      var value = '';
-      for (var i = 0; i < 32; i++) {
-        value += chars.charAt(Math.floor(Math.random() * charsLength));
-      }
-      this.token = value;
+    removeShare: function removeShare(index) {
+      this.sharedUsers.splice(index, 1);
     },
-    getShares: function getShares() {
+    loadUsers: function loadUsers(_ref) {
+      var action = _ref.action,
+        searchQuery = _ref.searchQuery,
+        callback = _ref.callback;
+      if (action === _riophae_vue_treeselect__WEBPACK_IMPORTED_MODULE_3__.ASYNC_SEARCH && searchQuery.length > 2) {
+        axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/users/search', {
+          params: {
+            email: searchQuery
+          }
+        }).then(function (response) {
+          var options = (response.data.data || []).map(function (user) {
+            return {
+              id: user.id,
+              label: user.email
+            };
+          });
+          callback(null, options);
+        })["catch"](function (error) {
+          console.error('Error loading users for Treeselect:', error);
+          callback(error);
+        });
+      }
+    },
+    saveShares: function saveShares() {
+      axios__WEBPACK_IMPORTED_MODULE_0___default().post('/api/shares', {
+        collection_id: this.id,
+        guests: this.sharedUsers.filter(function (share) {
+          return share.guest_id !== null;
+        })
+      })["catch"](console.error);
+    },
+    loadExistingShares: function loadExistingShares() {
       var _this2 = this;
       axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/shares/', {
         params: {
           collection_id: this.id
         }
       }).then(function (response) {
-        if (!response.data.data || response.data.data.length === 0) {
-          return;
+        if (response.data.data) {
+          _this2.userOptions = response.data.data.map(function (share) {
+            return {
+              id: share.guest_id,
+              label: share.email,
+              permission: share.permission
+            };
+          });
+          _this2.sharedUsers = response.data.data.map(function (share) {
+            return {
+              guest_id: share.guest_id,
+              email: share.email,
+              label: share.email,
+              permission: share.permission
+            };
+          });
         }
-        var share = response.data.data;
-        _this2.share = share;
-        _this2.token = share.token;
-        _this2.is_active = share.is_active;
       })["catch"](function (error) {
-        var _ref, _error$response$data, _error$response;
-        console.log((_ref = (_error$response$data = (_error$response = error.response) === null || _error$response === void 0 ? void 0 : _error$response.data) !== null && _error$response$data !== void 0 ? _error$response$data : error.response) !== null && _ref !== void 0 ? _ref : error);
+        console.error('Failed to load shares:', error);
       });
-    },
-    handleShare: function handleShare() {
-      if (this.share === null && this.is_active === false) {
-        return;
-      }
-      if (this.is_active && this.token !== '') {
-        if (this.share) {
-          axios__WEBPACK_IMPORTED_MODULE_0___default().patch('/api/shares/' + this.share.id, {
-            token: this.token,
-            collection_id: this.id,
-            is_active: this.is_active
-          })["catch"](function (error) {
-            console.log(error.response.data);
-          });
-        } else {
-          axios__WEBPACK_IMPORTED_MODULE_0___default().post('/api/shares', {
-            token: this.token,
-            collection_id: this.id,
-            is_active: this.is_active
-          })["catch"](function (error) {
-            console.log(error.response.data);
-          });
-        }
-      } else if (!this.is_active && this.share) {
-        axios__WEBPACK_IMPORTED_MODULE_0___default()["delete"]('/api/shares/' + this.share.id)["catch"](function (error) {
-          console.log(error.response.data);
-        });
-      }
     },
     openPicker: function openPicker() {
       this.showPicker = true;
@@ -10555,18 +10571,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
     },
     collectionIconIsInline: _api_collection__WEBPACK_IMPORTED_MODULE_1__.collectionIconIsInline
   },
-  computed: _objectSpread({
-    switchValue: function switchValue() {
-      if (this.is_active) {
-        return 'active';
-      } else {
-        return 'inactive';
-      }
-    },
-    domain: function domain() {
-      return origin + '/s?token=';
-    }
-  }, (0,vuex__WEBPACK_IMPORTED_MODULE_5__.mapState)('collection', ['collections'])),
+  computed: _objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_5__.mapState)('collection', ['collections'])),
   created: function created() {
     var _this3 = this;
     if (!this.isNew) {
@@ -10581,10 +10586,10 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         _this3.name = collection.name;
         _this3.iconId = collection.icon_id;
         _this3.parentCollection = collection.parent_id;
+        _this3.loadExistingShares();
       })["catch"](function (error) {
         console.log(error.response.data);
       });
-      this.getShares();
       this.$store.dispatch('appbar/setAppbar', {
         title: 'Edit Collection',
         button: {
@@ -10603,6 +10608,10 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         }
       });
     }
+    // nested: true - обязательно! Иначе вся логика ломается.
+    // В исходном контролере была заведомо ошибка перевода в bool и поэтому nested всегда был true.
+    // После исправления контролера и использования корректного nested происходят ошибки:
+    // Ломается меню коллекций в сайдбаре и селекторах на странице создания и редактирования коллекций.
     this.$store.dispatch('collection/fetchCollections', {
       nested: true
     }).then(function () {
@@ -13865,74 +13874,59 @@ var render = function render() {
       iconSelected: _vm.iconSelect
     }
   }) : _vm._e()], 1)], 1), _vm._v(" "), !_vm.isNew ? _c("div", {
-    staticClass: "mt-16 mb-16"
+    staticClass: "mt-8 mb-8"
   }, [_c("label", {
-    staticClass: "label inline-block"
-  }, [_vm._v("Collection Url")]), _vm._v(" "), _c("button", {
-    staticClass: "switch",
-    "class": [_vm.is_active ? "bg-orange-600 border-orange-600 text-white" : "border-gray-600 text-gray-600"],
-    on: {
-      click: function click($event) {
-        _vm.is_active = !_vm.is_active;
+    staticClass: "label mb-2"
+  }, [_vm._v("Shared With Users")]), _vm._v(" "), _vm._l(_vm.sharedUsers, function (share, index) {
+    return _c("div", {
+      key: index,
+      staticClass: "mb-4 flex space-x-4 items-center"
+    }, [_c("Treeselect", {
+      staticClass: "w-80",
+      attrs: {
+        multiple: false,
+        async: true,
+        "load-options": _vm.loadUsers,
+        placeholder: "Select user",
+        clearable: false,
+        "value-consists-of": "LEAF_PRIORITY",
+        "default-options": _vm.userOptions
+      },
+      model: {
+        value: share.guest_id,
+        callback: function callback($$v) {
+          _vm.$set(share, "guest_id", $$v);
+        },
+        expression: "share.guest_id"
       }
-    }
-  }, [_vm._v("\n                " + _vm._s(_vm.switchValue) + "\n            ")]), _vm._v(" "), _c("div", {
-    staticClass: "w-full mt-4 md:mt-0 md:flex"
-  }, [_c("input", {
-    staticClass: "input readonly",
-    attrs: {
-      readonly: ""
-    },
-    domProps: {
-      value: _vm.domain
-    }
-  }), _vm._v(" "), _c("div", {
-    staticClass: "flex flex-1 mt-1 md:mt-0"
-  }, [_c("input", {
-    directives: [{
-      name: "model",
-      rawName: "v-model",
-      value: _vm.token,
-      expression: "token"
-    }],
-    staticClass: "input flex-1 mx-1",
-    attrs: {
-      placeholder: "Token"
-    },
-    domProps: {
-      value: _vm.token
-    },
-    on: {
-      input: function input($event) {
-        if ($event.target.composing) return;
-        _vm.token = $event.target.value;
+    }), _vm._v(" "), _c("Treeselect", {
+      staticClass: "w-48",
+      attrs: {
+        options: _vm.permissions,
+        placeholder: "Select permission",
+        clearable: false
+      },
+      model: {
+        value: share.permission,
+        callback: function callback($$v) {
+          _vm.$set(share, "permission", $$v);
+        },
+        expression: "share.permission"
       }
-    }
-  }), _vm._v(" "), _vm.isSupported ? _c("div", {
-    staticClass: "bg-gray-300 px-2 mr-1 rounded cursor-pointer",
-    on: {
-      click: _vm.copy
-    }
-  }, [_c("svg-vue", {
-    staticClass: "w-6 mt-2.5",
-    attrs: {
-      icon: "material/link"
-    }
-  })], 1) : _vm._e(), _vm._v(" "), _c("div", {
-    staticClass: "px-2 bg-gray-300 rounded cursor-pointer",
-    on: {
-      click: function click($event) {
-        return _vm.generate();
+    }), _vm._v(" "), _c("button", {
+      staticClass: "text-red-600 hover:text-red-800 font-bold",
+      on: {
+        click: function click($event) {
+          return _vm.removeShare(index);
+        }
       }
+    }, [_vm._v("\n                    ×\n                ")])], 1);
+  }), _vm._v(" "), _c("button", {
+    staticClass: "mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700",
+    on: {
+      click: _vm.addShare
     }
-  }, [_c("svg-vue", {
-    staticClass: "w-6 mt-2.5",
-    attrs: {
-      icon: "material/autorenew"
-    }
-  })], 1)])]), _vm._v(" "), _c("p", {
-    staticClass: "mt-4"
-  }, [_vm._v("\n                Make this collection publicly available by visiting the specified URL.\n            ")])]) : _vm._e(), _vm._v(" "), !_vm.isNew ? _c("div", {
+  }, [_vm._v("\n                Add User\n            ")])], 2) : _vm._e(), _vm._v(" "), !_vm.isNew ? _c("div", {
     staticClass: "mb-14 py-6 px-6 bg-red-400 rounded"
   }, [_c("h3", {
     staticClass: "text-xl font-semibold mb-1"

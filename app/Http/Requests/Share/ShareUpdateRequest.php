@@ -24,7 +24,7 @@ class ShareUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => 'string|required',
+            'token' => 'string|required|unique:shares,token,' . $this->id,
             'collection_id' => 'integer|required',
             'is_active' => 'boolean|required'
         ];
