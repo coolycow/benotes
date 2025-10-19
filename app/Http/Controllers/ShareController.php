@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Exceptions\TransactionException;
 use App\Http\Requests\Share\ShareIndexRequest;
 use App\Http\Requests\Share\ShareStoreRequest;
-use App\Http\Requests\Share\ShareUpdateRequest;
 use App\Repositories\Contracts\CollectionRepositoryInterface;
 use App\Repositories\Contracts\ShareRepositoryInterface;
 use App\Services\ShareService;
@@ -64,69 +63,12 @@ class ShareController extends Controller
     }
 
     /**
-     * @param ShareUpdateRequest $request
-     * @param int $id
      * @return JsonResponse
      */
-    public function update(ShareUpdateRequest $request, int $id): JsonResponse
+    public function sharedCollections(): JsonResponse
     {
-        $validatedData = $request->validated();
+        $sharedCollections = $this->shareRepository->getSharedCollections(Auth::id());
 
-        if (!$share = $this->shareRepository->getById($id)) {
-            throw new ModelNotFoundException(
-                'Share not found.'
-            );
-        }
-
-        if ($request->getCollectionId()) {
-            $collection = $this->collectionRepository->getById($request->getCollectionId());
-
-            if (!$collection) {
-                throw new ModelNotFoundException(
-                    'Collection not found',
-                );
-            }
-        } else {
-            $collection = $this->collectionRepository->getById($share->collection_id);
-        }
-
-        $this->authorize('share', $collection);
-
-        if ($request->getIsActive()) {
-            $validatedData['is_active'] = $request->getIsActive();
-        }
-
-        $share->update($validatedData);
-
-        return response()->json(['data' => $share]);
-    }
-
-    /**
-     * @param int $id
-     * @return JsonResponse
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        $share = $this->shareRepository->getById($id);;
-
-        if (!$share) {
-            throw new ModelNotFoundException(
-                'Share not found.'
-            );
-        }
-
-        $this->authorize('delete', $share);
-
-        $share->delete();
-
-        return response()->json('Deleted', 204);
-    }
-
-    /**
-     * @return JsonResponse
-     */
-    public function me(): JsonResponse
-    {
-        return response()->json(['data' => Auth::guard('share')->user()]);
+        return response()->json(['data' => $sharedCollections]);
     }
 }

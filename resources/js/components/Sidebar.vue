@@ -58,9 +58,29 @@
                     Collections
                 </span>
 
-                <ol>
-                    <CollectionSidebar v-for="collection in collections" :key="collection.id" :collection="collection" />
+                <ol v-if="collections && collections.length > 0">
+                    <CollectionSidebar
+                        v-for="collection in collections"
+                        :key="collection.id"
+                        :collection="collection" />
                 </ol>
+                <div v-else class="px-8 py-2 text-sm text-gray-500">
+                    No collections
+                </div>
+
+                <span class="mb-2 md:px-8 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead">
+                    Shared collections
+                </span>
+
+                <ol v-if="sharedCollections && sharedCollections.length > 0">
+                    <CollectionSidebar
+                        v-for="sharedCollection in sharedCollections"
+                        :key="sharedCollection.id"
+                        :collection="sharedCollection" />
+                </ol>
+                <div v-else class="px-8 py-2 text-sm text-gray-500">
+                    No shared collections
+                </div>
             </div>
             <router-link to="/c/create" class="block md:mx-8 mx-4 mt-4 text-orange-600 font-medium">
                 <svg-vue class="w-4 mr-2 fill-current align-text-bottom" icon="remix/folder-add-fill" />
@@ -93,6 +113,7 @@ export default {
         ...mapState(['showSidebar']),
         ...mapState('auth', ['authUser']),
         ...mapState('collection', ['collections']),
+        ...mapState('collection', ['sharedCollections']),
         ...mapState(['isMobile']),
     },
     mounted() {
@@ -111,6 +132,12 @@ export default {
                             this.$route.params.collectionId
                         )
                     }
+                })
+
+            this.$store
+                .dispatch('collection/fetchSharedCollections', { nested: true, force: true })
+                .catch((error) => {
+                    console.error('Error loading shared collections:', error)
                 })
         },
         logout() {

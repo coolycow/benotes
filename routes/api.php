@@ -64,8 +64,7 @@ Route::group([
 
     Route::get('shares', [ShareController::class, 'index']);
     Route::post('shares', [ShareController::class, 'store']);
-    Route::patch('shares/{id}', [ShareController::class, 'update']);
-    Route::delete('shares/{id}', [ShareController::class, 'destroy']);
+    Route::get('shared-collections', [ShareController::class, 'sharedCollections']);
 
     Route::post('files', [FileController::class, 'store']);
 
@@ -78,8 +77,6 @@ Route::group([
 ], function () {
     Route::get('posts', [PostController::class, 'index']);
     Route::get('posts/{id}', [PostController::class, 'show']);
-
-    Route::get('shares/public/me', [ShareController::class, 'me']);
 });
 
 

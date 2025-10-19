@@ -10028,7 +10028,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       menuIsOpen: false
     };
   },
-  computed: _objectSpread(_objectSpread(_objectSpread(_objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)(['showSidebar'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('auth', ['authUser'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['collections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)(['isMobile'])),
+  computed: _objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)(['showSidebar'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('auth', ['authUser'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['collections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['sharedCollections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)(['isMobile'])),
   mounted: function mounted() {
     this.init();
   },
@@ -10044,6 +10044,12 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         } else if (_this.$route.params.collectionId !== null) {
           _this.$store.dispatch('collection/getCurrentCollection', _this.$route.params.collectionId);
         }
+      });
+      this.$store.dispatch('collection/fetchSharedCollections', {
+        nested: true,
+        force: true
+      })["catch"](function (error) {
+        console.error('Error loading shared collections:', error);
       });
     },
     logout: function logout() {
@@ -13567,14 +13573,27 @@ var render = function render() {
     staticClass: "align-middle text-gray-700 theme__sidebar__label"
   }, [_vm._v("Uncategorized")])], 1), _vm._v(" "), _c("span", {
     staticClass: "mb-2 md:px-8 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead"
-  }, [_vm._v("\n                Collections\n            ")]), _vm._v(" "), _c("ol", _vm._l(_vm.collections, function (collection) {
+  }, [_vm._v("\n                Collections\n            ")]), _vm._v(" "), _vm.collections && _vm.collections.length > 0 ? _c("ol", _vm._l(_vm.collections, function (collection) {
     return _c("CollectionSidebar", {
       key: collection.id,
       attrs: {
         collection: collection
       }
     });
-  }), 1)], 1), _vm._v(" "), _c("router-link", {
+  }), 1) : _c("div", {
+    staticClass: "px-8 py-2 text-sm text-gray-500"
+  }, [_vm._v("\n                No collections\n            ")]), _vm._v(" "), _c("span", {
+    staticClass: "mb-2 md:px-8 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead"
+  }, [_vm._v("\n                Shared collections\n            ")]), _vm._v(" "), _vm.sharedCollections && _vm.sharedCollections.length > 0 ? _c("ol", _vm._l(_vm.sharedCollections, function (sharedCollection) {
+    return _c("CollectionSidebar", {
+      key: sharedCollection.id,
+      attrs: {
+        collection: sharedCollection
+      }
+    });
+  }), 1) : _c("div", {
+    staticClass: "px-8 py-2 text-sm text-gray-500"
+  }, [_vm._v("\n                No shared collections\n            ")])], 1), _vm._v(" "), _c("router-link", {
     staticClass: "block md:mx-8 mx-4 mt-4 text-orange-600 font-medium",
     attrs: {
       to: "/c/create"
@@ -16260,11 +16279,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);
 
 var collectionsPromise;
+var sharedCollectionsPromise;
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   namespaced: true,
   state: {
     collections: null,
+    sharedCollections: null,
     collectionNames: new Map(),
+    sharedCollectionNames: new Map(),
     currentCollection: {
       id: null,
       name: ''
@@ -16297,6 +16319,12 @@ var collectionsPromise;
     },
     setCollectionMenu: function setCollectionMenu(state, collectionMenu) {
       state.collectionMenu = collectionMenu;
+    },
+    setSharedCollections: function setSharedCollections(state, collections) {
+      state.sharedCollections = collections;
+    },
+    setSharedCollectionNames: function setSharedCollectionNames(state, collections) {
+      state.sharedCollectionNames = collections;
     }
   },
   actions: {
@@ -16325,6 +16353,31 @@ var collectionsPromise;
       });
       return collectionsPromise;
     },
+    fetchSharedCollections: function fetchSharedCollections(context, _ref3) {
+      var _ref3$force = _ref3.force,
+        force = _ref3$force === void 0 ? false : _ref3$force,
+        _ref3$nested = _ref3.nested,
+        nested = _ref3$nested === void 0 ? false : _ref3$nested;
+      if (sharedCollectionsPromise) {
+        return sharedCollectionsPromise;
+      }
+      if (context.state.sharedCollections !== null && force == false) {
+        return;
+      }
+      sharedCollectionsPromise = axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/shared-collections', {
+        params: {
+          nested: nested
+        }
+      }).then(function (response) {
+        var sharedCollections = response.data.data;
+        context.commit('setSharedCollections', sharedCollections);
+        context.dispatch('setSharedCollectionNames', sharedCollections);
+        sharedCollectionsPromise = null;
+      })["catch"](function (error) {
+        console.log(error);
+      });
+      return sharedCollectionsPromise;
+    },
     setCollectionNames: function setCollectionNames(context, nestedCollections) {
       var collectionNames = new Map();
       collectionNames.set(0, 'Uncategorized');
@@ -16340,14 +16393,28 @@ var collectionsPromise;
       });
       context.commit('setCollectionNames', collectionNames);
     },
+    setSharedCollectionNames: function setSharedCollectionNames(context, nestedCollections) {
+      var collectionNames = new Map();
+      nestedCollections.forEach(function (col) {
+        var collections = col.nested;
+        while (collections.length > 0) {
+          collections.forEach(function (childCol) {
+            collectionNames.set(childCol.id, childCol.name);
+            collections = childCol.nested;
+          });
+        }
+        collectionNames.set(col.id, col.name);
+      });
+      context.commit('setSharedCollectionNames', collectionNames);
+    },
     addCollection: function addCollection(context, collection) {
       context.commit('addCollection', collection);
     },
-    updateCollection: function updateCollection(context, _ref3) {
-      var id = _ref3.id,
-        name = _ref3.name,
-        parentId = _ref3.parentId,
-        iconId = _ref3.iconId;
+    updateCollection: function updateCollection(context, _ref4) {
+      var id = _ref4.id,
+        name = _ref4.name,
+        parentId = _ref4.parentId,
+        iconId = _ref4.iconId;
       axios__WEBPACK_IMPORTED_MODULE_0___default().patch('/api/collections/' + id, {
         name: name,
         parent_id: parentId,
@@ -16362,10 +16429,10 @@ var collectionsPromise;
         console.log(error.response.data);
       });
     },
-    deleteCollection: function deleteCollection(context, _ref4) {
-      var id = _ref4.id,
-        _ref4$nested = _ref4.nested,
-        nested = _ref4$nested === void 0 ? false : _ref4$nested;
+    deleteCollection: function deleteCollection(context, _ref5) {
+      var id = _ref5.id,
+        _ref5$nested = _ref5.nested,
+        nested = _ref5$nested === void 0 ? false : _ref5$nested;
       axios__WEBPACK_IMPORTED_MODULE_0___default()["delete"]('/api/collections/' + id, {
         params: {
           nested: nested

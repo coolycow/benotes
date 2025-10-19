@@ -1,12 +1,15 @@
 import axios from 'axios'
 
 let collectionsPromise
+let sharedCollectionsPromise
 
 export default {
     namespaced: true,
     state: {
         collections: null,
+        sharedCollections: null,
         collectionNames: new Map(),
+        sharedCollectionNames: new Map(),
         currentCollection: {
             id: null,
             name: '',
@@ -38,6 +41,12 @@ export default {
         setCollectionMenu(state, collectionMenu) {
             state.collectionMenu = collectionMenu
         },
+        setSharedCollections(state, collections) {
+            state.sharedCollections = collections
+        },
+        setSharedCollectionNames(state, collections) {
+            state.sharedCollectionNames = collections
+        },
     },
     actions: {
         fetchCollections(context, { force = false, nested = false }) {
@@ -64,6 +73,30 @@ export default {
                 })
             return collectionsPromise
         },
+        fetchSharedCollections(context, { force = false, nested = false }) {
+            if (sharedCollectionsPromise) {
+                return sharedCollectionsPromise
+            }
+            if (context.state.sharedCollections !== null && force == false) {
+                return
+            }
+            sharedCollectionsPromise = axios
+                .get('/api/shared-collections', {
+                    params: {
+                        nested: nested,
+                    },
+                })
+                .then((response) => {
+                    const sharedCollections = response.data.data
+                    context.commit('setSharedCollections', sharedCollections)
+                    context.dispatch('setSharedCollectionNames', sharedCollections)
+                    sharedCollectionsPromise = null
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+            return sharedCollectionsPromise
+        },
         setCollectionNames(context, nestedCollections) {
             const collectionNames = new Map()
             collectionNames.set(0, 'Uncategorized')
@@ -78,6 +111,20 @@ export default {
                 collectionNames.set(col.id, col.name)
             })
             context.commit('setCollectionNames', collectionNames)
+        },
+        setSharedCollectionNames(context, nestedCollections) {
+            const collectionNames = new Map()
+            nestedCollections.forEach((col) => {
+                let collections = col.nested
+                while (collections.length > 0) {
+                    collections.forEach((childCol) => {
+                        collectionNames.set(childCol.id, childCol.name)
+                        collections = childCol.nested
+                    })
+                }
+                collectionNames.set(col.id, col.name)
+            })
+            context.commit('setSharedCollectionNames', collectionNames)
         },
         addCollection(context, collection) {
             context.commit('addCollection', collection)

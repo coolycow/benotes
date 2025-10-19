@@ -32,4 +32,10 @@ interface ShareRepositoryInterface
      * @return Collection
      */
     public function getByUserIdAndCollectionId(int $userId, int $collectionId): Collection;
+
+    /**
+     * @param int $userId
+     * @return Collection
+     */
+    public function getSharedCollections(int $userId): Collection;
 }

@@ -59,4 +59,19 @@ class ShareRepository extends BaseRepository implements ShareRepositoryInterface
             ->where('collection_id', $collectionId)
             ->get();
     }
+
+    /**
+     * @param int $userId
+     * @return Collection
+     */
+    public function getSharedCollections(int $userId): Collection
+    {
+        return $this->startCondition()
+            ->where('guest_id', $userId)
+            ->with(['collection', 'collection.nested'])
+            ->get()
+            ->map(function ($share) {
+                return $share->collection;
+            });
+    }
 }

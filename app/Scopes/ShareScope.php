@@ -20,6 +20,8 @@ class ShareScope implements Scope
             return;
         }
 
-        $builder->where('user_id', Auth::id());
+        $builder
+            ->where('user_id', Auth::id())
+            ->orWhere('guest_id', Auth::id());
     }
 }

@@ -29,7 +29,8 @@ class CollectionPolicy
      */
     public function view(User $user, Collection $collection): bool
     {
-        return $user->id === $collection->user_id;
+        return $user->id === $collection->user_id ||
+            $collection->shares()->where('guest_id', $user->id)->exists();
     }
 
     /**

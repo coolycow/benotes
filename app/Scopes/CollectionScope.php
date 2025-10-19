@@ -20,6 +20,10 @@ class CollectionScope implements Scope
             return;
         }
 
-        $builder->where('user_id', Auth::id());
+        $builder
+            ->where('collections.user_id', Auth::id())
+            ->orWhereHas('shares', function (Builder $query) {
+                $query->where('guest_id', Auth::id());
+            });
     }
 }
