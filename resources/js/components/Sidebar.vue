@@ -64,7 +64,7 @@
                         :key="collection.id"
                         :collection="collection" />
                 </ol>
-                <div v-else class="px-8 py-2 text-sm text-gray-500">
+                <div v-else class="px-8 py-2 text-sm text-gray-500 mb-4">
                     No collections
                 </div>
 
@@ -78,7 +78,7 @@
                         :key="sharedCollection.id"
                         :collection="sharedCollection" />
                 </ol>
-                <div v-else class="px-8 py-2 text-sm text-gray-500">
+                <div v-else class="px-8 py-2 text-sm text-gray-500 mb-4">
                     No shared collections
                 </div>
             </div>

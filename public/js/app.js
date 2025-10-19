@@ -13727,7 +13727,7 @@ var render = function render() {
       }
     });
   }), 1) : _c("div", {
-    staticClass: "px-8 py-2 text-sm text-gray-500"
+    staticClass: "px-8 py-2 text-sm text-gray-500 mb-4"
   }, [_vm._v("\n                No collections\n            ")]), _vm._v(" "), _c("span", {
     staticClass: "mb-2 md:px-8 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead"
   }, [_vm._v("\n                Shared collections\n            ")]), _vm._v(" "), _vm.sharedCollections && _vm.sharedCollections.length > 0 ? _c("ol", _vm._l(_vm.sharedCollections, function (sharedCollection) {
@@ -13738,7 +13738,7 @@ var render = function render() {
       }
     });
   }), 1) : _c("div", {
-    staticClass: "px-8 py-2 text-sm text-gray-500"
+    staticClass: "px-8 py-2 text-sm text-gray-500 mb-4"
   }, [_vm._v("\n                No shared collections\n            ")])], 1), _vm._v(" "), _c("router-link", {
     staticClass: "block md:mx-8 mx-4 mt-4 text-orange-600 font-medium",
     attrs: {
