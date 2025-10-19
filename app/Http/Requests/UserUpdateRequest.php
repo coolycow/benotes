@@ -24,10 +24,8 @@ class UserUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'string',
-            'email' => 'email',
-            'password_old' => 'string',
-            'password_new' => 'string|required_with:password_old',
+            'name' => 'string|alpha_dash|unique:users,name,' . $this->id,
+            'email' => 'email|unique:users,email,' . $this->id,
             'theme' => 'string',
         ];
     }
@@ -46,22 +44,6 @@ class UserUpdateRequest extends FormRequest
     public function getEmail(): ?string
     {
         return $this->input('email');
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPasswordOld(): ?string
-    {
-        return $this->input('password_old');
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPasswordNew(): ?string
-    {
-        return $this->input('password_new');
     }
 
     /**

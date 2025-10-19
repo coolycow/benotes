@@ -71,52 +71,18 @@ class UserController extends Controller
     }
 
     /**
-     * @param UserStoreRequest $request
-     * @return JsonResponse
-     */
-    public function store(UserStoreRequest $request): JsonResponse
-    {
-        $this->authorize('create', User::class);
-
-        if ($this->userRepository->getByEmail($request->getEmail())) {
-            return response()->json('Email is already in use.', 400);
-        }
-
-        $user = User::query()->create([
-            'name' => $request->getName(),
-            'email' => $request->getEmail(),
-            'password' => Hash::make($request->getPassword()),
-            'permission' => 7
-        ]);
-
-        $this->postSeedService->seedIntroData($user->getKey());
-
-        return response()->json(['data' => $user], 201);
-    }
-
-    /**
      * @param UserUpdateRequest $request
      * @param int $id
      * @return JsonResponse
      */
     public function update(UserUpdateRequest $request, int $id): JsonResponse
     {
-        if (!Auth::user()->isAdmin()) {
-            $id = Auth::id();
-        }
-
-        if ($request->getEmail()) {
-            $emailUser = $this->userRepository->getByEmail($request->getEmail());
-
-            if ($emailUser->id !== $id) {
-                return response()->json('Email is already in use.', 400);
-            }
-        }
-
-        $user = $this->userRepository->getById($id);
+        $user = $this->userRepository->getById(Auth::id());
 
         if (!$user) {
-            return response()->json('User not found.', 404);
+            throw new ModelNotFoundException(
+                'User not found'
+            );
         }
 
         $response = Gate::inspect('update', $user);
@@ -125,13 +91,7 @@ class UserController extends Controller
             return response()->json($response->message(), 403);
         }
 
-        $user->update($request->only('name', 'email', 'theme'));
-
-        if (Hash::check($request->getPasswordOld(), $user->password)) {
-            $user->update([
-                'password' => Hash::make($request->getPasswordNew())
-            ]);
-        }
+        $user->update($request->validated());
 
         return response()->json(['data' => $user]);
     }

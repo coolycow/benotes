@@ -119,7 +119,7 @@ readonly class PostService
                 ->orderBy('deleted_at', 'desc')->get();
         }
 
-        return $posts->orderBy('order', 'desc')->get();
+        return $posts->with('user')->orderBy('order', 'desc')->get();
     }
 
     /**

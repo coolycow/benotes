@@ -20,7 +20,9 @@
                 <div class="font-bold text-xl mb-2 truncate" :title="post.title">
                     {{ post.title }}
                 </div>
-                <PostItemUpdatedAt
+                <PostItemAuthorAndUpdatedAt
+                    :name="post.user.name"
+                    :email="post.user.email"
                     :created_at="post.created_at"
                     :updated_at="post.updated_at" />
                 <p
@@ -78,8 +80,12 @@ import { restorePost } from './../api/post.js'
 import { getCollectionName } from './../api/collection.js'
 import PostItemTags from './PostItemTags.vue'
 import PostItemUpdatedAt from './PostItemUpdatedAt.vue'
+import PostItemAuthor from './PostItemAuthor.vue'
+import PostItemAuthorAndUpdatedAt from './PostItemAuthorAndUpdatedAt.vue'
 export default {
     components: {
+        PostItemAuthorAndUpdatedAt,
+        PostItemAuthor,
         PostItemUpdatedAt,
         PostItemTags,
     },

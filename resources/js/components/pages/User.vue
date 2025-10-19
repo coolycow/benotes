@@ -132,13 +132,23 @@ export default {
                     this.$store.dispatch('auth/setAuthUser', user)
                 })
                 .catch((error) => {
-                    console.log(error)
-                    if (typeof error.response.data === 'object') {
-                        const firstError =
-                            error.response.data[Object.keys(error.response.data)[0]]
-                        this.error = firstError.toString()
+                    if (error.response && error.response.data) {
+                        const data = error.response.data;
+
+                        if (data.errors && typeof data.errors === 'object') {
+                            // Если есть вложенные ошибки валидации
+                            this.error = Object.values(data.errors).flat().join('\n');
+                        } else if (typeof data === 'object') {
+                            // Если ошибка не связана с валидацией, но пришла в виде объекта
+                            const firstErrorKey = Object.keys(data)[0];
+                            this.error = data[firstErrorKey].toString();
+                        } else {
+                            // Если пришла просто строка
+                            this.error = data;
+                        }
                     } else {
-                        this.error = error.response.data
+                        // Обработка других типов ошибок
+                        this.error = 'An unknown error occurred.';
                     }
                 })
         },

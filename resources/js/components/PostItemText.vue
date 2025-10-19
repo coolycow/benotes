@@ -22,7 +22,9 @@
                     v-if="post.title"
                     v-model="localPost.title"
                     class="text-orange-600 text-xl bg-transparent font-semibold" />
-                <PostItemUpdatedAt
+                <PostItemAuthorAndUpdatedAt
+                    :name="post.user.name"
+                    :email="post.user.email"
                     :created_at="post.created_at"
                     :updated_at="post.updated_at" />
                 <EditorContent :editor="editor" class="editorContent" />
@@ -69,9 +71,13 @@ import Image from '@tiptap/extension-image'
 import UnfurlingLink from '../UnfurlingLink'
 import PostItemTags from './PostItemTags.vue'
 import PostItemUpdatedAt from './PostItemUpdatedAt.vue'
+import PostItemAuthor from './PostItemAuthor.vue'
+import PostItemAuthorAndUpdatedAt from './PostItemAuthorAndUpdatedAt.vue'
 
 export default {
     components: {
+        PostItemAuthorAndUpdatedAt,
+        PostItemAuthor,
         PostItemUpdatedAt,
         EditorContent,
         PostItemTags,
