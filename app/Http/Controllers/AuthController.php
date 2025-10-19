@@ -17,13 +17,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Str;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use Psr\SimpleCache\InvalidArgumentException;
 use Random\RandomException;
@@ -59,6 +59,7 @@ class AuthController extends Controller
                 'message' => "A code was sent, check your email. Try again in $remainingMinutes minutes."
             ]);
         }
+
         $code = $this->confirmationCodeService->generate();
 
         $ttl = now()->addMinutes(15);
@@ -66,7 +67,9 @@ class AuthController extends Controller
         Cache::put($cacheKey, $code, $ttl);
 
         // Отправляем письмо
-        Mail::to($email)->queue(new CodeMail($code, $ttl));
+        if (!App::isLocal()) {
+            Mail::to($email)->queue(new CodeMail($code, $ttl));
+        }
 
         return response()->json(['message' => 'Code sent to your email.'], 201);
     }

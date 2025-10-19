@@ -41,7 +41,7 @@ export default {
     name: 'Appbar',
     methods: {
         truncateTitle(title, maxLength = 30) {
-            if (title.length > maxLength) {
+            if (title?.length > maxLength) {
                 return title.substring(0, maxLength - 3) + '...';
             }
             return title;

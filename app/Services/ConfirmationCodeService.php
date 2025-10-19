@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\App;
 use Random\RandomException;
 
 readonly class ConfirmationCodeService
@@ -15,6 +16,10 @@ readonly class ConfirmationCodeService
      */
     public function generate(int $min = 100000, int $max = 999999, int $length = 6): string
     {
+        if (App::isLocal()) {
+            return '999999';
+        }
+
         return str_pad(random_int($min, $max), $length, '0', STR_PAD_LEFT);
     }
 }

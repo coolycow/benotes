@@ -9059,7 +9059,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
   methods: {
     truncateTitle: function truncateTitle(title) {
       var maxLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 30;
-      if (title.length > maxLength) {
+      if ((title === null || title === void 0 ? void 0 : title.length) > maxLength) {
         return title.substring(0, maxLength - 3) + '...';
       }
       return title;
