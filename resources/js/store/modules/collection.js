@@ -49,7 +49,7 @@ export default {
         },
     },
     actions: {
-        fetchCollections(context, { force = false, nested = false }) {
+        fetchCollections(context, { force = false, nested = false, withShared = false }) {
             if (collectionsPromise) {
                 return collectionsPromise
             }
@@ -60,6 +60,7 @@ export default {
                 .get('/api/collections', {
                     params: {
                         nested: nested,
+                        withShared: withShared
                     },
                 })
                 .then((response) => {

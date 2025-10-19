@@ -11120,7 +11120,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       })
     };
   },
-  computed: _objectSpread(_objectSpread(_objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_19__.mapState)('collection', ['currentCollection'])), (0,vuex__WEBPACK_IMPORTED_MODULE_19__.mapState)('collection', ['collections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_19__.mapState)('post', ['posts'])),
+  computed: _objectSpread(_objectSpread(_objectSpread(_objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_19__.mapState)('collection', ['currentCollection'])), (0,vuex__WEBPACK_IMPORTED_MODULE_19__.mapState)('collection', ['collections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_19__.mapState)('collection', ['sharedCollections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_19__.mapState)('post', ['posts'])),
   mounted: function mounted() {
     if (!this.shareTargetApi) {
       return;
@@ -11158,6 +11158,11 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       nested: true
     }).then(function () {
       _this.optionsCollections = _this.optionsCollections.concat(_this.collections);
+    });
+    this.$store.dispatch('collection/fetchSharedCollections', {
+      nested: true
+    }).then(function () {
+      _this.optionsCollections = _this.optionsCollections.concat(_this.sharedCollections);
     });
     axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/tags').then(function (response) {
       _this.optionsTags = response.data.data;
@@ -16332,7 +16337,9 @@ var sharedCollectionsPromise;
       var _ref2$force = _ref2.force,
         force = _ref2$force === void 0 ? false : _ref2$force,
         _ref2$nested = _ref2.nested,
-        nested = _ref2$nested === void 0 ? false : _ref2$nested;
+        nested = _ref2$nested === void 0 ? false : _ref2$nested,
+        _ref2$withShared = _ref2.withShared,
+        withShared = _ref2$withShared === void 0 ? false : _ref2$withShared;
       if (collectionsPromise) {
         return collectionsPromise;
       }
@@ -16341,7 +16348,8 @@ var sharedCollectionsPromise;
       }
       collectionsPromise = axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/collections', {
         params: {
-          nested: nested
+          nested: nested,
+          withShared: withShared
         }
       }).then(function (response) {
         var collections = response.data.data;

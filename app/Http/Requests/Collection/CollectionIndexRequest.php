@@ -26,14 +26,23 @@ class CollectionIndexRequest extends FormRequest
     {
         return [
             'nested' => 'nullable',
+            'withShared' => 'nullable',
         ];
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
-    public function getNested(): ?bool
+    public function getNested(): bool
     {
         return BooleanService::boolValue($this->input('nested'));
+    }
+
+    /**
+     * @return bool
+     */
+    public function getWithShared(): bool
+    {
+        return BooleanService::boolValue($this->input('withShared'));
     }
 }

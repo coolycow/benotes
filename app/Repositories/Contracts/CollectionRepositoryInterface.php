@@ -14,14 +14,16 @@ interface CollectionRepositoryInterface
     public function getById(int $id): Collection|Model|null;
 
     /**
-     * @param int $userId
+     * @param int $user_id
+     * @param bool $withShared
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getByUserId(int $userId): \Illuminate\Database\Eloquent\Collection;
+    public function getByUser(int $user_id, bool $withShared = false): \Illuminate\Database\Eloquent\Collection;
 
     /**
-     * @param int $userId
+     * @param int $user_id
+     * @param bool $withShared
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getWithNested(int $userId): \Illuminate\Database\Eloquent\Collection;
+    public function getWithNested(int $user_id, bool $withShared = false): \Illuminate\Database\Eloquent\Collection;
 }

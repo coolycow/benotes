@@ -26,27 +26,33 @@ class CollectionRepository extends BaseRepository implements CollectionRepositor
     }
 
     /**
-     * @param int $userId
+     * @param int $user_id
+     * @param bool $withShared
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getByUserId(int $userId): \Illuminate\Database\Eloquent\Collection
+    public function getByUser(int $user_id, bool $withShared = false): \Illuminate\Database\Eloquent\Collection
     {
         return $this->startCondition()
-            ->where('user_id', $userId)
             ->orderBy('name')
             ->get();
     }
 
     /**
-     * @param int $userId
+     * @param int $user_id
+     * @param bool $withShared
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getWithNested(int $userId): \Illuminate\Database\Eloquent\Collection
+    public function getWithNested(int $user_id, bool $withShared = false): \Illuminate\Database\Eloquent\Collection
     {
-        return $this->startCondition()
-            ->where('user_id', $userId)
+        $query = $this->startCondition()
             ->whereNull('parent_id')
-            ->with('nested')
+            ->with('nested');
+
+        if (!$withShared) {
+            $query->where('user_id', $user_id);
+        }
+
+        return $query
             ->orderBy('name')
             ->get();
     }

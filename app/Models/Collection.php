@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  *
+ * @property-read $is_shared
+ *
  * @property-read User $user
  * @property-read \Illuminate\Database\Eloquent\Collection|Collection[] $nested
  * @property-read \Illuminate\Database\Eloquent\Collection|Share[] $shares
@@ -84,6 +86,10 @@ class Collection extends Model
         'updated_at',
     ];
 
+    protected $appends = [
+        'is_shared'
+    ];
+
     /**
      * @param int|null $id
      * @param bool $is_uncategorized
@@ -132,5 +138,13 @@ class Collection extends Model
     public function shares(): HasMany
     {
         return $this->hasMany(Share::class);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsSharedAttribute(): bool
+    {
+        return $this->shares()->exists();
     }
 }

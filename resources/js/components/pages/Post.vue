@@ -143,6 +143,7 @@ export default {
     computed: {
         ...mapState('collection', ['currentCollection']),
         ...mapState('collection', ['collections']),
+        ...mapState('collection', ['sharedCollections']),
         ...mapState('post', ['posts']),
     },
     mounted() {
@@ -168,6 +169,9 @@ export default {
         this.optionsCollections.push(uncategorized)
         this.$store.dispatch('collection/fetchCollections', { nested: true }).then(() => {
             this.optionsCollections = this.optionsCollections.concat(this.collections)
+        })
+        this.$store.dispatch('collection/fetchSharedCollections', { nested: true }).then(() => {
+            this.optionsCollections = this.optionsCollections.concat(this.sharedCollections)
         })
 
         axios.get('/api/tags').then((response) => {
