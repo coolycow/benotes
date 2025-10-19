@@ -10036,7 +10036,8 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
     init: function init() {
       var _this = this;
       this.$store.dispatch('collection/fetchCollections', {
-        nested: true
+        nested: true,
+        force: true
       }).then(function () {
         if (_this.$route.meta.isHome) {
           _this.$store.dispatch('collection/getCurrentCollection', 0);

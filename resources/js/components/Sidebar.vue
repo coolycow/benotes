@@ -101,7 +101,7 @@ export default {
     methods: {
         init() {
             this.$store
-                .dispatch('collection/fetchCollections', { nested: true })
+                .dispatch('collection/fetchCollections', { nested: true, force: true })
                 .then(() => {
                     if (this.$route.meta.isHome) {
                         this.$store.dispatch('collection/getCurrentCollection', 0)
