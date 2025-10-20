@@ -54,7 +54,9 @@ class TagObserver
     {
         $tag->name = Str::lower(
             trim(
-                Str::limit($tag->name, 255, '')
+                Str::limit(
+                    Str::replace('#', '', $tag->name), 255, ''
+                )
             )
         );
     }
