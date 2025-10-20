@@ -24,7 +24,7 @@
 ### Установка
 Скачиваем последнюю версию приложения:
 ```shell
-git clone https://github.com/coolycow/benotes
+git clone https://github.com/coolycow/benotes-next
 ```
 
 Создаём .`env` из шаблона:

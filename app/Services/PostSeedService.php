@@ -17,10 +17,10 @@ readonly class PostSeedService
         $i = 1;
 
         Post::query()->create([
-            'title'         => 'GitHub - coolycow/benotes: An open source self hosted web app for your notes and bookmarks.',
-            'content'       => 'https://github.com/coolycow/benotes',
+            'title'         => 'GitHub - coolycow/benotes-next: An open source self hosted web app for your notes and bookmarks.',
+            'content'       => 'https://github.com/coolycow/benotes-next',
             'type'          => PostTypeEnum::Link,
-            'url'           => 'https://github.com/coolycow/benotes',
+            'url'           => 'https://github.com/coolycow/benotes-next',
             'color'         => '#1e2327',
             'image_path'    => 'https://opengraph.githubassets.com/9c1b74a8cc5eeee5c5c9f62701c42e1356595422d840d2e209bceb836deb5ffb/coolycow/benotes',
             'base_url'      => 'https://github.com',
