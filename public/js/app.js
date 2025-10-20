@@ -9825,6 +9825,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       this.isActive = value;
     },
     stopEditing: function stopEditing(event) {
+      var _this = this;
       var currentPostTarget = document.querySelector("[post-id=\"".concat(this.localPost.id, "\"] .ProseMirror"));
       if (!currentPostTarget.contains(event.target)) {
         this.setActive(false);
@@ -9843,10 +9844,10 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
           post: this.localPost
         }).then(function () {
           // Сбрасываем флаг при успешном обновлении
-          //this.localPost.isUpdating = false
+          _this.localPost.isUpdating = false;
         })["catch"](function () {
           // Сбрасываем флаг при ошибке
-          // this.localPost.isUpdating = false
+          _this.localPost.isUpdating = false;
         });
       }
     },
