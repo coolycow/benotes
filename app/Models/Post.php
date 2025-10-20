@@ -117,6 +117,10 @@ class Post extends Model
         'human_deleted_at',
     ];
 
+    protected $with = [
+        'user'
+    ];
+
     /**
      * @param $value
      * @return string|null
