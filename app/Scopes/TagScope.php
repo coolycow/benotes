@@ -20,6 +20,15 @@ class TagScope implements Scope
             return;
         }
 
-        $builder->where('user_id', Auth::id());
+        $builder->where('user_id', Auth::id())
+            ->orWhereHas('posts', function (Builder $postQuery) {
+                $postQuery->whereHas('collection', function (Builder $query) {
+                    $query->whereHas('shares', function (Builder $query) {
+                        $query->where('shares.user_id', Auth::id())
+                            ->orWhere('shares.guest_id', Auth::id());
+                    });
+                });
+            });
+
     }
 }

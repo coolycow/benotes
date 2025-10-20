@@ -138,8 +138,6 @@ class User extends Authenticatable implements JWTSubject
     {
         if (Auth::guard('api')->check()) {
             return UserPermissionEnum::Api;
-        } elseif (Auth::guard('share')->check()) {
-            return UserPermissionEnum::Share;
         }
 
         throw new UnexpectedValueException('User not authenticated');

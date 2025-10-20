@@ -20,6 +20,12 @@ class PostScope implements Scope
             return;
         }
 
-        $builder->where('user_id', Auth::id());
+        $builder->where('posts.user_id', Auth::id())
+            ->orWhereHas('collection', function (Builder $query) {
+                $query->whereHas('shares', function (Builder $query) {
+                    $query->where('shares.user_id', Auth::id())
+                        ->orWhere('shares.guest_id', Auth::id());
+                });
+            });
     }
 }

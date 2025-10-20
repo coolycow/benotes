@@ -74,7 +74,6 @@ class PostController extends Controller
 
         $posts = $this->service->all(
             Auth::id(),
-            User::getAuthenticationType(),
             $request->getCollectionId(),
             $request->getIsUncategorized(),
             $request->getTagId(),

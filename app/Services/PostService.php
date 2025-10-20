@@ -28,7 +28,6 @@ readonly class PostService
 
     /**
      * @param int $user_id
-     * @param UserPermissionEnum $auth_type
      * @param int|null $collection_id
      * @param bool $is_uncategorized
      * @param int|null $tag_id
@@ -42,7 +41,6 @@ readonly class PostService
      */
     public function all(
         int $user_id,
-        UserPermissionEnum $auth_type,
         ?int $collection_id = null,
         bool $is_uncategorized = false,
         ?int $tag_id = null,
@@ -65,36 +63,21 @@ readonly class PostService
             $posts = $posts->whereIn('id', $post_ids);
         }
 
-        if ($auth_type === UserPermissionEnum::Api) {
-            if ($collection_id > 0 && $filter !== '') {
-                $collection_ids = Collection::with('children')
-                    ->where('parent_id', $collection_id)
-                    ->pluck('id')->all();
-                $collection_ids[] = $collection_id;
-                $posts = $posts
-                    ->whereIn('collection_id', $collection_ids)
-                    ->where('user_id', '=', Auth::user()->id);
-            } elseif ($collection_id > 0 || $is_uncategorized === true) {
-                $collection_id = Collection::getCollectionId(
-                    $collection_id,
-                    $is_uncategorized
-                );
-                $posts = $posts->where([
-                    ['collection_id', '=', $collection_id],
-                    ['user_id', '=', $user_id]
-                ]);
-            } else {
-                $posts = $posts->where('user_id', Auth::user()->id);
-            }
-        } elseif ($auth_type === UserPermissionEnum::Share) {
-            $share = Auth::guard('share')->user();
-            $posts = $posts->where([
-                'collection_id' => $share->collection_id,
-                'user_id' => $share->user_id
-            ]);
+        if ($collection_id > 0 && $filter !== '') {
+            $collection_ids = Collection::with('children')
+                ->where('parent_id', $collection_id)
+                ->pluck('id')->all();
+
+            $collection_ids[] = $collection_id;
+
+            $posts = $posts->whereIn('collection_id', $collection_ids);
+        } elseif ($collection_id > 0 || $is_uncategorized === true) {
+            $collection_id = Collection::getCollectionId($collection_id, $is_uncategorized);
+
+            $posts = $posts->where('collection_id', '=', $collection_id);
         }
 
-        if ($filter !== '' && $auth_type === UserPermissionEnum::Api) {
+        if ($filter !== '') {
             $filter = strtolower($filter);
             $posts = $posts->where(function ($query) use ($filter) {
                 $query
@@ -119,7 +102,7 @@ readonly class PostService
                 ->orderBy('deleted_at', 'desc')->get();
         }
 
-        return $posts->with('user')->orderBy('order', 'desc')->get();
+        return $posts->orderBy('order', 'desc')->get();
     }
 
     /**

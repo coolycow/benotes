@@ -41,6 +41,7 @@ use Illuminate\Support\Str;
  * @property-read string|null $human_deleted_at
  *
  * @property-read User $user
+ * @property-read Collection $collection
  * @property Collection|Tag[] $tags // Важно делать именно так, чтобы правильно работал трансфер!!!
  *
  * @mixin Model
@@ -162,6 +163,14 @@ class Post extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function collection(): BelongsTo
+    {
+        return $this->belongsTo(Collection::class);
     }
 
     /**

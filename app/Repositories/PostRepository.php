@@ -37,7 +37,6 @@ class PostRepository extends BaseRepository implements PostRepositoryInterface
     public function getNextOrder(int $userId, ?int $collectionId = null): int
     {
         return $this->startCondition()
-                ->where('user_id', $userId)
                 ->where('collection_id', $collectionId)
                 ->max('order') + 1;
     }
@@ -50,7 +49,6 @@ class PostRepository extends BaseRepository implements PostRepositoryInterface
     public function hasUncategorizedWithType(int $userId, PostTypeEnum $type): bool
     {
         return $this->startCondition()
-            ->where('user_id', $userId)
             ->whereNull('collection_id')
             ->where('type', $type)
             ->exists();

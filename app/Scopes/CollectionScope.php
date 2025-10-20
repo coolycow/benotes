@@ -23,7 +23,7 @@ class CollectionScope implements Scope
         $builder
             ->where('collections.user_id', Auth::id())
             ->orWhereHas('shares', function (Builder $query) {
-                $query->where('guest_id', Auth::id());
+                $query->where('shares.guest_id', Auth::id());
             });
     }
 }
