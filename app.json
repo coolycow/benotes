@@ -1,7 +1,7 @@
 {
-    "name": "Benotes",
+    "name": "Benotes NEXT",
     "description": "An open source web app for your notes & bookmarks.",
-    "repository": "https://github.com/fr0tt/benotes",
+    "repository": "https://github.com/coolycow/benotes-next",
     "logo": "https://raw.githubusercontent.com/fr0tt/benotes/master/public/logo_144x144.png",
     "keywords": [
         "laravel",
@@ -15,7 +15,7 @@
         "postdeploy": []
     },
     "env": {
-        "APP_NAME": "Benotes",
+        "APP_NAME": "Benotes NEXT",
         "APP_ENV": "production",
         "APP_DEBUG": "false",
         "APP_KEY": {

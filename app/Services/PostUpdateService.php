@@ -12,15 +12,15 @@ use Illuminate\Support\Facades\Auth;
 readonly class PostUpdateService
 {
     /**
-     * @param PostService $service
+     * @param PostService $postService
      * @param PostTagService $postTagService
      * @param PostImageService $postImageService
      * @param CollectionRepositoryInterface $collectionRepository
      */
     public function __construct(
-        protected PostService $service,
-        protected PostTagService $postTagService,
-        protected PostImageService $postImageService,
+        protected PostService                   $postService,
+        protected PostTagService                $postTagService,
+        protected PostImageService              $postImageService,
         protected CollectionRepositoryInterface $collectionRepository,
     )
     {
@@ -63,8 +63,8 @@ readonly class PostUpdateService
         }
 
         if (isset($validatedData['content'])) {
-            $validatedData['content'] = $this->service->sanitize($validatedData['content']);
-            $info = $this->service->computePostData($validatedData['content'], $title);
+            $validatedData['content'] = $this->postService->sanitize($validatedData['content']);
+            $info = $this->postService->computePostData($validatedData['content'], $title);
 
             if ($validatedData['content'] === $post->content) {
                 foreach (['title', 'description', 'image_path'] as $attr) {
@@ -132,10 +132,10 @@ readonly class PostUpdateService
             $is_currently_archived = $post->trashed();
 
             if ($validatedData['is_archived'] === true && !$is_currently_archived) {
-                $this->service->delete($post);
+                $this->postService->delete($post);
                 $post = Post::withTrashed()->find($post->id);
             } elseif ($validatedData['is_archived'] === false && $is_currently_archived === true) {
-                $post = $this->service->restore($post);
+                $post = $this->postService->restore($post);
             }
         }
 
@@ -148,8 +148,6 @@ readonly class PostUpdateService
             $this->postTagService->saveTags($post->id, $newValues['tags']);
         }
 
-        $post->tags = $post->tags()->get();
-
-        return $post;
+        return $post->load(['tags']);
     }
 }

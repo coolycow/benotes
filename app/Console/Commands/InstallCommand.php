@@ -73,20 +73,7 @@ class InstallCommand extends Command
 
         // Create admin
         $this->info('Create your Admin account:');
-        $email = $this->ask('Email');
-
-        $validator = Validator::make([
-            'email' => $email
-        ], [
-            'email' => 'email',
-        ]);
-
-        if ($validator->fails()) {
-            foreach ($validator->errors()->all() as $error) {
-                $this->error($error);
-            }
-            return;
-        }
+        $email = $this->askAndValidateEmail();
 
         $user = User::query()->create([
             'email' => $email,
@@ -99,20 +86,7 @@ class InstallCommand extends Command
 
         // Create user
         $this->info('Create your user account:');
-        $email = $this->ask('Email');
-
-        $validator = Validator::make([
-            'email' => $email
-        ], [
-            'email' => 'email',
-        ]);
-
-        if ($validator->fails()) {
-            foreach ($validator->errors()->all() as $error) {
-                $this->error($error);
-            }
-            return;
-        }
+        $email = $this->askAndValidateEmail();
 
         $user = User::query()->create([
             'email' => $email,
@@ -129,5 +103,28 @@ class InstallCommand extends Command
 
         $this->line(PHP_EOL);
         $this->info('Installation complete.');
+    }
+
+    /**
+     * @return string|null
+     */
+    private function askAndValidateEmail(): ?string
+    {
+        $email = $this->ask('Email');
+
+        $validator = Validator::make([
+            'email' => $email
+        ], [
+            'email' => 'email',
+        ]);
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->all() as $error) {
+                $this->error($error);
+            }
+            return null;
+        }
+
+        return $email;
     }
 }

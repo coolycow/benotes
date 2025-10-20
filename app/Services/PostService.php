@@ -3,17 +3,23 @@
 namespace App\Services;
 
 use App\Enums\PostTypeEnum;
-use App\Enums\UserPermissionEnum;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\PostTagRepositoryInterface;
 use DOMDocument;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Post;
 use App\Models\Collection;
 
 readonly class PostService
 {
+    /**
+     * @param PostRepositoryInterface $repository
+     * @param PostTagRepositoryInterface $postTagRepository
+     * @param PostImageService $postImageService
+     * @param PostTagService $postTagService
+     * @param ThumbnailService $thumbnailService
+     * @param ColorService $colorService
+     */
     public function __construct(
         protected PostRepositoryInterface $repository,
         protected PostTagRepositoryInterface $postTagRepository,
@@ -40,7 +46,6 @@ readonly class PostService
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function all(
-        int $user_id,
         ?int $collection_id = null,
         bool $is_uncategorized = false,
         ?int $tag_id = null,
@@ -103,57 +108,6 @@ readonly class PostService
         }
 
         return $posts->orderBy('order', 'desc')->get();
-    }
-
-    /**
-     * @param int $user_id
-     * @param string $content
-     * @param string|null $title
-     * @param int|null $collection_id
-     * @param string|null $description
-     * @param array|null $tags
-     * @return Post
-     */
-    public function store(
-        int $user_id,
-        string $content,
-        ?string $title = null,
-        ?int $collection_id = null,
-        ?string $description = null,
-        ?array $tags = null,
-        ): Post
-    {
-        $content = $this->sanitize($content);
-        $info = $this->computePostData($content, $title, $description);
-
-        $attributes = array_merge([
-            'title' => $title,
-            'content' => $content,
-            'collection_id' => $collection_id,
-            'description' => $description,
-            'user_id' => $user_id,
-            'order' => $this->repository->getNextOrder($user_id, $collection_id)
-        ], $info);
-
-        /**
-         * @var Post $post
-         */
-        $post = Post::query()->create($attributes);
-
-        if ($info['type'] === PostTypeEnum::Link) {
-            $this->postImageService->saveImage($info['image_path'], $post);
-        }
-
-        if ($tags) {
-            $this->postTagService->saveTags($post->getKey(), $tags);
-        }
-
-        /**
-         * Важно делать именно так, чтобы правильно работал трансфер!!!
-         * @see resources/js/store/modules/post.js
-         */
-        $post->tags = $post->tags()->get();
-        return $post;
     }
 
     /**

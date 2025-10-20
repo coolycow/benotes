@@ -113,7 +113,8 @@ class Post extends Model
     ];
 
     protected $with = [
-        'user'
+        'user',
+        'tags'
     ];
 
     /**

@@ -77,4 +77,6 @@ return [
 
     'browser' => env('BROWSER', 'chromium-browser'),
     'useragent' => env('USERAGENT', 'Googlebot/2.1 (+http://www.google.com/bot.html)'),
+
+    'local_secure_code' => env('LOCAL_SECURE_CODE'),
 ];

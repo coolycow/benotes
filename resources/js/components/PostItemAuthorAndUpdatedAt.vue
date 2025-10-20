@@ -1,6 +1,6 @@
 <template>
     <div class="text-gray-600 text-sm mb-1"
-         :title="`Created by ${name} at ${formattedCreatedAt}`"
+         :title="`Created by @${name} at ${formattedCreatedAt}`"
     >
         @{{ truncateName }} · {{ humanUpdatedAt }}
     </div>

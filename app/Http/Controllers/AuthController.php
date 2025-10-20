@@ -17,7 +17,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -66,10 +65,7 @@ class AuthController extends Controller
 
         Cache::put($cacheKey, $code, $ttl);
 
-        // Отправляем письмо
-        if (!App::isLocal()) {
-            Mail::to($email)->queue(new CodeMail($code, $ttl));
-        }
+        Mail::to($email)->queue(new CodeMail($code, $ttl));
 
         return response()->json(['message' => 'Code sent to your email.'], 201);
     }

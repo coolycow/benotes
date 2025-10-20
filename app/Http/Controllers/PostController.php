@@ -10,11 +10,11 @@ use App\Http\Requests\Post\PostUpdateRequest;
 use App\Http\Requests\Post\PostUrlInfoRequest;
 use App\Models\Collection;
 use App\Models\Post;
-use App\Models\User;
 use App\Repositories\Contracts\CollectionRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\TagRepositoryInterface;
 use App\Services\PostService;
+use App\Services\PostStoreService;
 use App\Services\PostUpdateService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +25,7 @@ class PostController extends Controller
 {
     public function __construct(
         protected PostService $service,
+        protected PostStoreService $postStoreService,
         protected PostUpdateService $updateService,
         protected PostRepositoryInterface $repository,
         protected CollectionRepositoryInterface $collectionRepository,
@@ -73,7 +74,6 @@ class PostController extends Controller
         }
 
         $posts = $this->service->all(
-            Auth::id(),
             $request->getCollectionId(),
             $request->getIsUncategorized(),
             $request->getTagId(),
@@ -124,7 +124,7 @@ class PostController extends Controller
             }
         }
 
-        $post = $this->service->store(
+        $post = $this->postStoreService->store(
             Auth::id(),
             $request->getPostContent(),
             $request->getTitle(),
