@@ -133,7 +133,7 @@ class PostController extends Controller
             $request->getTags(),
         );
 
-        return response()->json(['data' => $post], Response::HTTP_CREATED);
+        return response()->json(['data' => $post->load('user')], Response::HTTP_CREATED);
     }
 
     /**

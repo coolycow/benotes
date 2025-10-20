@@ -36,10 +36,6 @@ use Illuminate\Support\Str;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  *
- * @property-read string|null $human_created_at
- * @property-read string|null $human_updated_at
- * @property-read string|null $human_deleted_at
- *
  * @property-read User $user
  * @property-read Collection $collection
  * @property Collection|Tag[] $tags // Важно делать именно так, чтобы правильно работал трансфер!!!
@@ -113,9 +109,7 @@ class Post extends Model
     ];
 
     protected $appends = [
-        'human_created_at',
-        'human_updated_at',
-        'human_deleted_at',
+        //
     ];
 
     protected $with = [
@@ -171,29 +165,5 @@ class Post extends Model
     public function collection(): BelongsTo
     {
         return $this->belongsTo(Collection::class);
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getHumanCreatedAtAttribute(): ?string
-    {
-        return $this->created_at?->diffForHumans();
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getHumanUpdatedAtAttribute(): ?string
-    {
-        return $this->updated_at?->diffForHumans();
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getHumanDeletedAtAttribute(): ?string
-    {
-        return $this->deleted_at?->diffForHumans();
     }
 }
