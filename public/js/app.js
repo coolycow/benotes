@@ -9172,7 +9172,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       selectedCollectionId: null
     };
   },
-  computed: _objectSpread(_objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['collections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['collectionMenu'])),
+  computed: _objectSpread(_objectSpread(_objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['collections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['sharedCollections'])), (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('collection', ['collectionMenu'])),
   created: function created() {
     var _this = this;
     var uncategorized = {
@@ -9185,6 +9185,12 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       nested: true
     }).then(function () {
       _this.optionsCollections = _this.optionsCollections.concat(_this.collections);
+      _this.selectedCollectionId = _this.collectionMenu.post.collection_id ? _this.collectionMenu.post.collection_id : 0;
+    });
+    this.$store.dispatch('collection/fetchSharedCollections', {
+      nested: true
+    }).then(function () {
+      _this.optionsCollections = _this.optionsCollections.concat(_this.sharedCollections);
       _this.selectedCollectionId = _this.collectionMenu.post.collection_id ? _this.collectionMenu.post.collection_id : 0;
     });
     document.querySelector('#app').addEventListener('click', this.hide, true);
