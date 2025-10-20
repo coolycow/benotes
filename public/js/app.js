@@ -12267,6 +12267,7 @@ var render = function render() {
     attrs: {
       options: _vm.optionsCollections,
       normalizer: _vm.normalizeNode,
+      clearable: false,
       placeholder: ""
     },
     scopedSlots: _vm._u([{
@@ -13083,7 +13084,10 @@ var render = function render() {
   var _vm = this,
     _c = _vm._self._c;
   return _c("div", {
-    staticClass: "text-gray-600 text-sm mb-1"
+    staticClass: "text-gray-600 text-sm mb-1",
+    attrs: {
+      title: "Created by ".concat(_vm.name, " at ").concat(_vm.formattedCreatedAt)
+    }
   }, [_vm._v("\n    @" + _vm._s(_vm.truncateName) + " · " + _vm._s(_vm.humanUpdatedAt) + "\n")]);
 };
 var staticRenderFns = [];
@@ -13735,7 +13739,7 @@ var render = function render() {
   }), 1) : _c("div", {
     staticClass: "px-8 py-2 text-sm text-gray-500 mb-4"
   }, [_vm._v("\n                No collections\n            ")]), _vm._v(" "), _c("span", {
-    staticClass: "mb-2 md:px-8 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead"
+    staticClass: "mb-2 md:px-8 mt-4 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead"
   }, [_vm._v("\n                Shared collections\n            ")]), _vm._v(" "), _vm.sharedCollections && _vm.sharedCollections.length > 0 ? _c("ol", _vm._l(_vm.sharedCollections, function (sharedCollection) {
     return _c("CollectionSidebar", {
       key: sharedCollection.id,

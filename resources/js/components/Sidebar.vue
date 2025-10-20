@@ -68,7 +68,7 @@
                     No collections
                 </div>
 
-                <span class="mb-2 md:px-8 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead">
+                <span class="mb-2 md:px-8 mt-4 px-4 block text-xs text-gray-700 font-medium uppercase theme__sidebar__subhead">
                     Shared collections
                 </span>
 

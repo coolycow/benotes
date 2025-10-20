@@ -16,6 +16,7 @@
                         v-model="selectedCollectionId"
                         :options="optionsCollections"
                         :normalizer="normalizeNode"
+                        :clearable="false"
                         placeholder=""
                         class="block w-80">
                         <template #value-label="{ node }">
