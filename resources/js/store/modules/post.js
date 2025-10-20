@@ -172,14 +172,14 @@ export default {
                         index: index,
                     })
                 })
-                .catch(() => {
-                    post.isUpdating = false
+                .catch((error) => {
+                    console.log(error.response.data)
                     context.dispatch(
                         'notification/setNotification',
                         {
                             type: 'error',
                             title: 'Error',
-                            description: 'Post could not be updated.',
+                            description: error.response.data ?? 'Post could not be updated.',
                         },
                         { root: true }
                     )

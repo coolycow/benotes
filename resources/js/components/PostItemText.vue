@@ -48,7 +48,7 @@
             <svg-vue icon="remix/inbox-unarchive-line" />
         </button>
 
-        <div v-if="post.isUpdating" class="absolute bottom-0 left-0 mb-5 ml-5 bg-white">
+        <div v-if="localPost.isUpdating" class="absolute bottom-0 left-0 mb-5 ml-5 bg-white">
             <svg-vue
                 icon="remix/refresh-line"
                 class="button-icon remix animate-spin fill-current text-gray-900" />
@@ -110,7 +110,9 @@ export default {
         ...mapState(['isMobile']),
     },
     created() {
-        this.localPost = Object.assign({}, this.post)
+        // this.localPost = Object.assign({}, this.post)
+        this.localPost = { ...this.post, isUpdating: false }
+        this.$set(this.localPost, 'isUpdating', false)
     },
     beforeDestroy() {
         this.editor.destroy()
@@ -142,13 +144,23 @@ export default {
                 const matches = content.match(
                     /^<p>(?<content>.(?:(?!<p>)(?!<\/p>).)*)<\/p>$/
                 )
+
                 if (matches == null) {
                     this.localPost.content = content
                 } else {
                     this.localPost.content = matches[1]
                 }
-                this.post.isUpdating = true
+
+                this.localPost.isUpdating = true
                 this.$store.dispatch('post/updatePost', { post: this.localPost })
+                    .then(() => {
+                        // Сбрасываем флаг при успешном обновлении
+                        this.localPost.isUpdating = false
+                    })
+                    .catch(() => {
+                        // Сбрасываем флаг при ошибке
+                        this.localPost.isUpdating = false
+                    })
             }
         },
         restorePost() {

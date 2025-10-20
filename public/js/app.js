@@ -9803,7 +9803,11 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
     }
   }, (0,vuex__WEBPACK_IMPORTED_MODULE_15__.mapState)(['isMobile'])),
   created: function created() {
-    this.localPost = Object.assign({}, this.post);
+    // this.localPost = Object.assign({}, this.post)
+    this.localPost = _objectSpread(_objectSpread({}, this.post), {}, {
+      isUpdating: false
+    });
+    this.$set(this.localPost, 'isUpdating', false);
   },
   beforeDestroy: function beforeDestroy() {
     this.editor.destroy();
@@ -9834,9 +9838,15 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         } else {
           this.localPost.content = matches[1];
         }
-        this.post.isUpdating = true;
+        this.localPost.isUpdating = true;
         this.$store.dispatch('post/updatePost', {
           post: this.localPost
+        }).then(function () {
+          // Сбрасываем флаг при успешном обновлении
+          //this.localPost.isUpdating = false
+        })["catch"](function () {
+          // Сбрасываем флаг при ошибке
+          // this.localPost.isUpdating = false
         });
       }
     },
@@ -13430,7 +13440,7 @@ var render = function render() {
     attrs: {
       icon: "remix/inbox-unarchive-line"
     }
-  })], 1) : _vm._e(), _vm._v(" "), _vm.post.isUpdating ? _c("div", {
+  })], 1) : _vm._e(), _vm._v(" "), _vm.localPost.isUpdating ? _c("div", {
     staticClass: "absolute bottom-0 left-0 mb-5 ml-5 bg-white"
   }, [_c("svg-vue", {
     staticClass: "button-icon remix animate-spin fill-current text-gray-900",
@@ -16869,12 +16879,13 @@ __webpack_require__.r(__webpack_exports__);
           post: newPost,
           index: index
         });
-      })["catch"](function () {
-        post.isUpdating = false;
+      })["catch"](function (error) {
+        var _error$response$data;
+        console.log(error.response.data);
         context.dispatch('notification/setNotification', {
           type: 'error',
           title: 'Error',
-          description: 'Post could not be updated.'
+          description: (_error$response$data = error.response.data) !== null && _error$response$data !== void 0 ? _error$response$data : 'Post could not be updated.'
         }, {
           root: true
         });
