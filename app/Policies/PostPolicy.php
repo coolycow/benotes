@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\SharePermissionEnum;
 use App\Models\User;
 use App\Models\Post;
 use App\Models\Share;
@@ -44,7 +45,12 @@ class PostPolicy
      */
     public function update(User $user, Post $post): bool
     {
-        return $user->id === $post->user_id;
+        return $user->id === $post->user_id
+            || $post->collection->user_id === $user->id
+            || $post->collection->shares()
+                ->where('guest_id', $user->id)
+                ->where('permission', SharePermissionEnum::Write)
+                ->exists();
     }
 
     /**
