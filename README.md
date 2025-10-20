@@ -1,5 +1,5 @@
 # Benotes NEXT
-Изменённая версия Benotes.
+Изменённая версия [Benotes](https://github.com/fr0tt/benotes).
 
 ## Изменения:
 - Обновлены все пакеты;
