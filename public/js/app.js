@@ -10150,15 +10150,6 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         console.error('Error loading shared collections:', error);
       });
     },
-    logout: function logout() {
-      axios__WEBPACK_IMPORTED_MODULE_0___default().post('/api/auth/logout')["catch"](function (error) {
-        console.log(error.response);
-      });
-      this.$cookie["delete"]('token');
-      this.$router.push({
-        path: '/login'
-      });
-    },
     isActiveLink: function isActiveLink(route) {
       return route === this.$route.path;
     },
@@ -11933,6 +11924,15 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       this.theme = this.selectedTheme;
       document.documentElement.classList.remove('default', 'dark');
       document.documentElement.classList.add(this.selectedTheme);
+    },
+    logout: function logout() {
+      axios__WEBPACK_IMPORTED_MODULE_0___default().post('/api/auth/logout')["catch"](function (error) {
+        console.log(error.response);
+      });
+      this.$cookie["delete"]('token');
+      this.$router.push({
+        path: '/login'
+      });
     }
   },
   computed: _objectSpread(_objectSpread({}, (0,vuex__WEBPACK_IMPORTED_MODULE_3__.mapState)('auth', ['authUser'])), {}, {
@@ -13640,7 +13640,21 @@ var render = function render() {
     staticClass: "list pt-2"
   }, [_c("ol", {
     staticClass: "mb-12 main-menu"
-  }, [_c("li", [_c("router-link", {
+  }, [_c("li", {
+    staticClass: "mb-4"
+  }, [_c("router-link", {
+    staticClass: "collection theme__sidebar__collection",
+    attrs: {
+      to: "/users/" + _vm.authUser.id
+    }
+  }, [_c("svg-vue", {
+    staticClass: "w-4 fill-current mr-2",
+    attrs: {
+      icon: "remix/user-settings-fill"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "align-middle text-gray-700 theme__sidebar__label"
+  }, [_vm._v(_vm._s(_vm.truncateAuthUserName))])], 1)], 1), _vm._v(" "), _c("li", [_c("router-link", {
     staticClass: "collection theme__sidebar__collection",
     attrs: {
       to: "/search"
@@ -13703,34 +13717,7 @@ var render = function render() {
     }
   }), _vm._v(" "), _c("span", {
     staticClass: "align-middle text-gray-700 theme__sidebar__label"
-  }, [_vm._v("Users")])], 1)], 1) : _vm._e(), _vm._v(" "), _c("li", [_c("router-link", {
-    staticClass: "collection theme__sidebar__collection",
-    attrs: {
-      to: "/users/" + _vm.authUser.id
-    }
-  }, [_c("svg-vue", {
-    staticClass: "w-4 fill-current mr-2",
-    attrs: {
-      icon: "remix/user-settings-fill"
-    }
-  }), _vm._v(" "), _c("span", {
-    staticClass: "align-middle text-gray-700 theme__sidebar__label"
-  }, [_vm._v(_vm._s(_vm.truncateAuthUserName))])], 1)], 1), _vm._v(" "), _c("li", {
-    staticClass: "collection theme__sidebar__collection"
-  }, [_c("a", {
-    on: {
-      click: function click($event) {
-        return _vm.logout();
-      }
-    }
-  }, [_c("svg-vue", {
-    staticClass: "w-4 fill-current mr-2",
-    attrs: {
-      icon: "remix/logout-circle-line"
-    }
-  }), _vm._v(" "), _c("span", {
-    staticClass: "align-middle text-gray-700 theme__sidebar__label"
-  }, [_vm._v("Logout")])], 1)])]), _vm._v(" "), _c("router-link", {
+  }, [_vm._v("Users")])], 1)], 1) : _vm._e()]), _vm._v(" "), _c("router-link", {
     staticClass: "collection mb-4 theme__sidebar__collection",
     "class": {
       "router-link-exact-active": _vm.isActiveLink("/")
@@ -15410,7 +15397,23 @@ var render = function render() {
       },
       expression: "selectedTheme"
     }
-  })], 1) : _vm._e()])]);
+  })], 1) : _vm._e(), _vm._v(" "), _vm.isOwner ? _c("div", {
+    staticClass: "mb-14 py-6 px-6 bg-red-400 rounded"
+  }, [_c("h3", {
+    staticClass: "text-xl font-semibold mb-1"
+  }, [_vm._v("Logout")]), _vm._v(" "), _c("p", {
+    staticClass: "mb-4"
+  }, [_vm._v("This will log you out of the application.")]), _vm._v(" "), _c("button", {
+    staticClass: "button red mb-2 bg-white",
+    attrs: {
+      title: "Delete Collection"
+    },
+    on: {
+      click: function click($event) {
+        return _vm.logout();
+      }
+    }
+  }, [_vm._v("\n                Logout\n            ")])]) : _vm._e()])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,

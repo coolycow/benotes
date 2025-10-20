@@ -5,6 +5,19 @@
             class="sidebar w-full md:w-48 lg:w-64 xl:w-1/6 theme__sidebar">
             <div class="list pt-2">
                 <ol class="mb-12 main-menu">
+                    <li class="mb-4">
+                        <router-link
+                            :to="'/users/' + authUser.id"
+                            class="collection theme__sidebar__collection">
+                            <svg-vue
+                                class="w-4 fill-current mr-2"
+                                icon="remix/user-settings-fill" />
+                            <span
+                                class="align-middle text-gray-700 theme__sidebar__label"
+                            >{{ truncateAuthUserName }}</span
+                            >
+                        </router-link>
+                    </li>
                     <li>
                         <router-link
                             to="/search"
@@ -67,29 +80,6 @@
                                 >Users</span
                             >
                         </router-link>
-                    </li>
-                    <li>
-                        <router-link
-                            :to="'/users/' + authUser.id"
-                            class="collection theme__sidebar__collection">
-                            <svg-vue
-                                class="w-4 fill-current mr-2"
-                                icon="remix/user-settings-fill" />
-                            <span
-                                class="align-middle text-gray-700 theme__sidebar__label"
-                                >{{ truncateAuthUserName }}</span
-                            >
-                        </router-link>
-                    </li>
-                    <li class="collection theme__sidebar__collection">
-                        <a @click="logout()">
-                            <svg-vue
-                                class="w-4 fill-current mr-2"
-                                icon="remix/logout-circle-line" />
-                            <span class="align-middle text-gray-700 theme__sidebar__label"
-                                >Logout</span
-                            >
-                        </a>
                     </li>
                 </ol>
                 <router-link
@@ -208,13 +198,6 @@ export default {
                 .catch((error) => {
                     console.error('Error loading shared collections:', error)
                 })
-        },
-        logout() {
-            axios.post('/api/auth/logout').catch((error) => {
-                console.log(error.response)
-            })
-            this.$cookie.delete('token')
-            this.$router.push({ path: '/login' })
         },
         isActiveLink(route) {
             return route === this.$route.path

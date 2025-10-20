@@ -79,7 +79,7 @@ class TagController extends Controller
      */
     public function update(TagUpdateRequest $request, $id): JsonResponse
     {
-        if (!$this->repository->getByUserIdAndName(Auth::id(), $request->getName())) {
+        if ($this->repository->getByUserIdAndName(Auth::id(), $request->getName())) {
             return response()->json('Tag does already exist', 400);
         }
 

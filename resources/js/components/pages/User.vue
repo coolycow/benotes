@@ -74,6 +74,17 @@
                     placeholder=""
                     class="w-80" />
             </div>
+
+            <div v-if="isOwner"  class="mb-14 py-6 px-6 bg-red-400 rounded">
+                <h3 class="text-xl font-semibold mb-1">Logout</h3>
+                <p class="mb-4">This will log you out of the application.</p>
+                <button
+                    title="Delete Collection"
+                    class="button red mb-2 bg-white"
+                    @click="logout()">
+                    Logout
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -195,6 +206,13 @@ export default {
             this.theme = this.selectedTheme
             document.documentElement.classList.remove('default', 'dark')
             document.documentElement.classList.add(this.selectedTheme)
+        },
+        logout() {
+            axios.post('/api/auth/logout').catch((error) => {
+                console.log(error.response)
+            })
+            this.$cookie.delete('token')
+            this.$router.push({ path: '/login' })
         },
     },
     computed: {
