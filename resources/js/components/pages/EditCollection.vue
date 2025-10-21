@@ -167,7 +167,8 @@ export default {
             userOptions: [],
             permissions: [
                 { id: '1', label: 'Read' },
-                { id: '2', label: 'Read & Write' }
+                { id: '2', label: 'Read & Write' },
+                { id: '3', label: 'Read & Write & Delete' }
             ],
         }
     },

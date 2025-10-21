@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\SharePermissionEnum;
 use App\Models\User;
 use App\Models\Collection;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -30,7 +31,9 @@ class CollectionPolicy
     public function view(User $user, Collection $collection): bool
     {
         return $user->id === $collection->user_id ||
-            $collection->shares()->where('guest_id', $user->id)->exists();
+            $collection->shares()
+                ->where('guest_id', $user->id)
+                ->exists();
     }
 
     /**
@@ -77,5 +80,22 @@ class CollectionPolicy
     public function share(User $user, Collection $collection): bool
     {
         return $user->id === $collection->user_id;
+    }
+
+    /**
+     * @param User $user
+     * @param Collection $collection
+     * @return bool
+     */
+    public function createPost(User $user, Collection $collection): bool
+    {
+        return $user->id === $collection->user_id ||
+            $collection->shares()
+                ->where('guest_id', $user->id)
+                ->whereIn('permission', [
+                    SharePermissionEnum::ReadAndWrite,
+                    SharePermissionEnum::ReadAndWriteAndDelete
+                ])
+                ->exists();
     }
 }

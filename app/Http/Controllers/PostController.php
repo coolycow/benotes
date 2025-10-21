@@ -122,6 +122,8 @@ class PostController extends Controller
                     'Collection not found',
                 );
             }
+
+            $this->authorize('createPost', $collection);
         }
 
         $post = $this->postStoreService->store(

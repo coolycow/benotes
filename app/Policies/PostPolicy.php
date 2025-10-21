@@ -25,15 +25,21 @@ class PostPolicy
     /**
      * Determine whether the user can view the post.
      *
-     * @param  mixed $user
+     * @param  User|Share $user
      * @param Post $post
      * @return bool
      */
     public function view(User|Share $user, Post $post): bool
     {
-        return $user instanceof User
-            ? $user->id === $post->user_id
-            : $user->collection_id === $post->collection_id;
+        if ($user instanceof Share) {
+            return $user->collection_id === $post->collection_id;
+        }
+
+        return $post->user_id === $user->getKey()
+            || $post->collection->user_id === $user->getKey()
+            || $post->collection->shares()
+                ->where('guest_id', $user->getKey())
+                ->exists();
     }
 
     /**
@@ -49,7 +55,10 @@ class PostPolicy
             || $post->collection->user_id === $user->id
             || $post->collection->shares()
                 ->where('guest_id', $user->id)
-                ->where('permission', SharePermissionEnum::Write)
+                ->whereIn('permission', [
+                    SharePermissionEnum::ReadAndWrite,
+                    SharePermissionEnum::ReadAndWriteAndDelete
+                ])
                 ->exists();
     }
 
@@ -62,6 +71,11 @@ class PostPolicy
      */
     public function delete(User $user, Post $post): bool
     {
-        return $user->id === $post->user_id;
+        return $user->id === $post->user_id
+            || $post->collection->user_id === $user->id
+            || $post->collection->shares()
+                ->where('guest_id', $user->id)
+                ->whereIn('permission', SharePermissionEnum::ReadAndWriteAndDelete)
+                ->exists();
     }
 }
