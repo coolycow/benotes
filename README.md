@@ -27,7 +27,7 @@
 git clone https://github.com/coolycow/benotes-next
 ```
 
-Создаём .`env` из шаблона:
+Создаём `.env` из шаблона:
 ```shell
 cp .env.example .env
 ```
