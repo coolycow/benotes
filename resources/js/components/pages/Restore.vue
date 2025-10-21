@@ -29,6 +29,7 @@
 import { mapState } from 'vuex'
 import Post from '../PostItem.vue'
 import PostLoader from '../PostLoader.vue'
+import axios from 'axios'
 
 export default {
     components: {
@@ -44,9 +45,9 @@ export default {
         this.$store.dispatch('appbar/setAppbar', {
             title: 'Recycle Bin',
             button: {
-                label: null,
-                callback: null,
-                icon: null,
+                label: 'Clear',
+                callback: this.clear,
+                icon: 'delete',
             },
             options: null,
         })
@@ -58,6 +59,24 @@ export default {
         goToCreatePost() {
             this.$router.push(`/c/0/p/create`)
         },
+        clear() {
+            axios.post('/api/recycle-bin/clear')
+                .then(() => {
+                    this.$store.commit('post/setPosts', [])
+                    this.$store.dispatch('notification/setNotification', {
+                        type: 'success',
+                        title: 'Recycle Bin cleared.',
+                        description: 'All posts successfully deleted.',
+                    })
+                })
+                .catch((error) => {
+                    this.$store.dispatch('notification/setNotification', {
+                        type: 'error',
+                        title: 'Error',
+                        description: 'Recycle Bin could not be cleared.',
+                    })
+                })
+        }
     },
 }
 </script>

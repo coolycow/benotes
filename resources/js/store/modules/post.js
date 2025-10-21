@@ -207,13 +207,24 @@ export default {
             axios
                 .delete('/api/posts/' + id)
                 .then(() => {
+                    context.dispatch('notification/setNotification', {
+                        type: 'success',
+                        title: 'Post Deleted',
+                        description: 'Post was deleted successfully.',
+                    }, { root: true })
+
                     const index = context.state.posts.findIndex((post) => {
                         return post.id === id
                     })
+
                     context.commit('deletePost', index)
                 })
                 .catch((error) => {
-                    console.log(error)
+                    context.dispatch('notification/setNotification', {
+                        type: 'error',
+                        title: 'Error',
+                        description: error.response.data ?? 'Unknown error',
+                    }, { root: true })
                 })
         },
         setContextMenu(context, contextMenu) {

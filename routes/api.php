@@ -6,6 +6,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\RecycleBinController;
 use App\Http\Controllers\ShareController;
 use App\Http\Controllers\TestingController;
 use App\Http\Controllers\TagController;
@@ -40,6 +41,7 @@ Route::group([
     Route::post('posts', [PostController::class, 'store']);
     Route::patch('posts/{id}', [PostController::class, 'update']);
     Route::delete('posts/{id}', [PostController::class, 'destroy']);
+    Route::post('recycle-bin/clear', [RecycleBinController::class, 'clear']);
 
     Route::get('meta', [PostController::class, 'getUrlInfo']);
 
