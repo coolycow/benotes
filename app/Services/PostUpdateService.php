@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Repositories\Contracts\CollectionRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 readonly class PostUpdateService
 {
@@ -44,7 +45,6 @@ readonly class PostUpdateService
     ): Post
     {
         if (!$collectionId && $isUncategorized === false) {
-            // request contains no knowledge about a collection
             $validatedData['collection_id'] = $post->collection_id;
         } else {
             $validatedData['collection_id'] = Collection::getCollectionId(
@@ -53,9 +53,12 @@ readonly class PostUpdateService
             );
         }
 
+        if ($post->collection_id !== $validatedData['collection_id']) {
+            Gate::authorize('movePost', $post);
+        };
+
         if (!empty($validatedData['collection_id'])) {
-            $collection = $this->collectionRepository->getById($validatedData['collection_id']);
-            if (!$collection) {
+            if (!$this->collectionRepository->getById($validatedData['collection_id'])) {
                 throw new ModelNotFoundException(
                     'Collection does not exist',
                 );

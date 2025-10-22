@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('auth/login-password', [AuthController::class, 'loginPassword']);
 Route::post('auth/login-code', [AuthController::class, 'loginCode']);
-Route::post('auth/send-code', [AuthController::class, 'sendCode'])->middleware('throttle:3,1');;
+Route::post('auth/send-code', [AuthController::class, 'sendCode'])->middleware('throttle:3,1');
 Route::post('auth/refresh', [AuthController::class, 'refresh']);
 Route::post('auth/forgot', [AuthController::class, 'sendReset']);
 Route::post('auth/reset', [AuthController::class, 'reset']);
@@ -41,6 +41,7 @@ Route::group([
     Route::post('posts', [PostController::class, 'store']);
     Route::patch('posts/{id}', [PostController::class, 'update']);
     Route::delete('posts/{id}', [PostController::class, 'destroy']);
+
     Route::post('recycle-bin/clear', [RecycleBinController::class, 'clear']);
 
     Route::get('meta', [PostController::class, 'getUrlInfo']);

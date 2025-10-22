@@ -78,4 +78,21 @@ class PostPolicy
                 ->whereIn('permission', SharePermissionEnum::ReadAndWriteAndDelete)
                 ->exists();
     }
+
+    /**
+     * Determine whether the user can move the post to another collection.
+     *
+     * @param User $user
+     * @param Post $post
+     * @return bool
+     */
+    public function movePost(User $user, Post $post): bool
+    {
+        return $user->id === $post->user_id ||
+            $post->collection->user_id === $user->id ||
+            $post->collection->shares()
+                ->where('guest_id', $user->id)
+                ->whereIn('permission', [SharePermissionEnum::ReadAndWriteAndDelete])
+                ->exists();
+    }
 }
