@@ -308,10 +308,15 @@ export default {
                 this.post.collection_id = this.selectedCollectionId
                 this.post.tags = tags
                 this.$store.dispatch('post/updatePost', { post: this.post })
-                const originCollectionId = this.post.collection_id
-                this.$router.push({
-                    path: originCollectionId === null ? '/' : '/c/' + originCollectionId,
-                })
+                    .then((response) => {
+                        const originCollectionId = this.post.collection_id
+                        this.$router.push({
+                            path: originCollectionId === null ? '/' : '/c/' + originCollectionId,
+                        })
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                    });
             }
         },
         keySave(event) {

@@ -151,7 +151,7 @@ export default {
             if (restore) {
                 params.is_archived = false
             }
-            axios
+            return axios
                 .patch('/api/posts/' + post.id, params)
                 .then((response) => {
                     const newPost = response.data.data
@@ -171,6 +171,8 @@ export default {
                         post: newPost,
                         index: index,
                     })
+
+                    return newPost
                 })
                 .catch((error) => {
                     console.log(error.response.data)
@@ -183,6 +185,7 @@ export default {
                         },
                         { root: true }
                     )
+                    throw error
                 })
         },
         setPostById(context, { id, post }) {

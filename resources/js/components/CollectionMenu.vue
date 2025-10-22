@@ -106,10 +106,15 @@ export default {
             const post = JSON.parse(JSON.stringify(this.collectionMenu.post))
             post.collection_id = this.selectedCollectionId
             this.$store.dispatch('post/updatePost', { post: post, transfer: true })
-            this.$store.dispatch('collection/setCollectionMenu', {
-                isVisible: false,
-                post: null,
-            })
+                .then(() => {
+                    this.$store.dispatch('collection/setCollectionMenu', {
+                        isVisible: false,
+                        post: null,
+                    })
+                })
+                .catch((error) => {
+                    console.log('Post transfer error: ', error)
+                })
         },
         hide(event) {
             if (this.$refs.cmModal == event.target) {
